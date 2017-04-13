@@ -1,31 +1,26 @@
 FROM continuumio/anaconda
 
 RUN apt-get update
-<<<<<<< HEAD
-RUN apt-get install -y vim 
-=======
+
 RUN apt-get install -y vim wget build-essential libstdc++-4.8-dev
->>>>>>> f4e6665851b8f1d85c4218dc0fd09dd320a56d94
 
 RUN /opt/conda/bin/conda install jupyter -y --quiet && mkdir /opt/notebooks && mkdir /root/scripts
 RUN mkdir /RT && cd /RT &&  wget https://root.cern.ch/download/root_v6.08.06.Linux-ubuntu14-x86_64-gcc4.8.tar.gz && tar -xvf root_v6.08.06.Linux-ubuntu14-x86_64-gcc4.8.tar.gz
 
-#RUN pip install bash_kernel
-#RUN python -m bash_kernel.install
-#RUN conda install -c conda-forge matplotlib=2.0.0
-#RUN conda install -c r r
+RUN pip install bash_kernel
+RUN python -m bash_kernel.install
+RUN conda install -c conda-forge matplotlib=2.0.0
+RUN conda install -c r r
 
-<<<<<<< HEAD
 
 RUN conda config --add channels https://conda.anaconda.org/NLeSC
 
-#RUN conda install root
+RUN conda install root
 
 ADD ./notebook.sh /root/scripts/notebook.sh
 RUN chmod 655  /root/scripts/notebook.sh
-=======
-#ADD ./notebook.sh /root/scripts/notebook.sh
-#RUN chmod 655  /root/scripts/notebook.sh
->>>>>>> f4e6665851b8f1d85c4218dc0fd09dd320a56d94
+
+ADD ./notebook.sh /root/scripts/notebook.sh
+RUN chmod 655  /root/scripts/notebook.sh
 
 #ENTRYPOINT  ["/root/scripts/notebook.sh"]
