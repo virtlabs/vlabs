@@ -86,15 +86,15 @@ containerports.name = portname #################################################
 
 
 envvar1.name = 'DB_HOST'
-envvar1.value = 'db'
+envvar1.value = "''"
 envvar2.name = 'DB_NAME'
-envvar2.value = 'moodle'
+envvar2.value = "''"
 envvar3.name = 'DB_USER'
-envvar3.value = 'moodle'
+envvar3.value = "''"
 envvar4.name = 'DB_PASSWD'
-envvar4.value = 'moodle'
+envvar4.value = "''"
 envvar5.name = 'WWW_ROOT'
-envvar5.value = "'http://moodletest.web.rmlab.infn.it'"
+envvar5.value = "''"
 
 
 
@@ -147,7 +147,7 @@ routeto.name = nameservice
 routeto.weight = 100
 
 
-routespec.host = 'moodletest.web.rmlab.infn.it'
+routespec.host = ''
 routespec.port = routeport
 routespec.to = routeto
 
@@ -217,13 +217,13 @@ mysqlvar4 = client.V1EnvVar()
 
 
 mysqlvar1.name = 'MYSQL_DATABASE'
-mysqlvar1.value = 'moodle'
+mysqlvar1.value = ''
 mysqlvar2.name = 'MYSQL_ROOT_PASSWORD'
-mysqlvar2.value = 'moodle'
+mysqlvar2.value = ''
 mysqlvar3.name = 'MYSQL_USER'
-mysqlvar3.value = 'moodle'
+mysqlvar3.value = ''
 mysqlvar4.name = 'MYSQL_PASSWORD'
-mysqlvar4.value = 'moodle'
+mysqlvar4.value = ''
 
 mysqlports = client.V1ContainerPort()
 mysqlports.container_port = 3306
