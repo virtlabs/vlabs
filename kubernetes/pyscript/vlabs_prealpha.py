@@ -1,26 +1,24 @@
 import kubernetes.config
 import kubernetes.client
-from kubernetes.client.rest import ApiException
 from pprint import pprint
 import yaml
 import time
 from kubernetes.client.rest import ApiException
-from kubernetes import config, client
-from pprint import pprint
-from kubernetes.client.models.v1_container import V1Container
-from kubernetes.client.models.v1_object_meta import V1ObjectMeta
-from kubernetes.client.models.v1_pod_spec import V1PodSpec
-import kubernetes.client.models
 import openshift.client
-import openshift.client.models
+
+from creation import Provision
+from deletion import Del
 
 kubernetes.config.load_kube_config()
 
 
 class Config:
     def __init__(self):
-        self.stream = file('yaml_alpha.yml', 'r')
+        self.stream = file('vlabs_template.yml', 'r')
         self.ysrvc = yaml.load(self.stream)
+
+    def getready(self):
+        pass
 
     def getmarket(self):
         for j in range(0, len(self.ysrvc['marketplace']['apps'])):
@@ -59,7 +57,7 @@ class Config:
 class AppManager:
     def __init__(self, namespace):
         self.namespace = namespace
-        self.stream = file('y2.yml', 'r')
+        self.stream = file('vlabs_template.yml', 'r')
         self.ysrvc = yaml.load(self.stream)
 
     def getrunning(self):
@@ -80,6 +78,7 @@ class AppManager:
 
     def create(self, app):
         # try:
+        nameapp = raw_input("Inserisci il nome della tua applicazione: ")
         app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
         service = self.ysrvc['marketplace']['apps'][app_index]['name']
         for j in range(0, len(self.ysrvc['marketplace']['apps'][app_index]['services'])):
@@ -89,152 +88,95 @@ class AppManager:
             envvar = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['env']
 
             psvc = Provision()
-            psvc.createsvc(service, deploy, port, imagename, self.namespace, envvar)
+            psvc.createsvc(deploy, port, imagename, self.namespace, envvar, nameapp, service)
 
 
             # except:
             #    print("app non esistente")
 
-    def delete(self):
-        pass
+    def delete(self, dellabel):
+        dcs = self.listdc(dellabel)
+        svcs = self.listsvc(dellabel)
+        rts = self.listroute(dellabel)
+        rcs = self.listrcs(dellabel)
+
+        dd = Del()
+        dd.delrt(rts, self.namespace)
+        dd.delsvc(svcs, self.namespace)
+        dd.deldc(dcs, self.namespace)
+        dd.setrc(rcs, self.namespace)
+        dd.delrc(rcs, self.namespace)
 
 
-class Provision:
-    def __init__(self):
-        config.load_kube_config()
-        self.o1 = openshift.client.OapiApi()
-        self.k1 = kubernetes.client.CoreV1Api()
-
-    def createsvc(self, service, deploy, port, imagename, namespace, envvar):
-        bservice = client.V1Service()
-        smeta = V1ObjectMeta()
-        dcmeta = V1ObjectMeta()
-        pmt = V1ObjectMeta()
-        sspec = client.V1ServiceSpec()
-        bdc = openshift.client.V1DeploymentConfig()
-        dcspec = openshift.client.V1DeploymentConfigSpec()
-
-        strategy = openshift.client.V1DeploymentStrategy()
-        rollingparams = openshift.client.V1RollingDeploymentStrategyParams()
-        podtemp = client.V1PodTemplateSpec()
-        podspec = client.V1PodSpec()
-        container = client.V1Container()
-
-        smeta.name = service+deploy   ###############################EJELO! occhio qui!
-        smeta.namespace = namespace
-        smeta.labels = {namespace: deploy}  # podlabel
-
-        sspec.selector = {namespace: deploy}  # podlabel
-        sspec.ports = []
-
-        for l in range(0, len(port)):
-            p = client.V1ServicePort()
-            p.name = "{port}-{tcp}".format(**port[l])
-            p.protocol = "TCP"
-            p.port = port[l]['tcp']
-            p.target_port = "{port}-{tcp}".format(**port[l])
-            sspec.ports.append(p)
-            if port[l]['route'] == 'yes':
-                sd=service+deploy
-                self.createroute(p.target_port, sd, deploy, namespace)
-                continue
-
-
-
-
-        bservice.api_version = 'v1'
-        bservice.kind = 'Service'
-        bservice.metadata = smeta
-        bservice.spec = sspec
-        bservice.api_version = 'v1'
-
-        # DeploymentConfig
-
-        dcmeta.labels = {namespace: deploy}
-        dcmeta.name = deploy
-        dcmeta.namespace = namespace
-
-        rollingparams.interval_seconds = 1
-
-        strategy.labels = {namespace: deploy}
-        strategy.type = 'Rolling'
-        strategy.rolling_params = rollingparams
-
-        container.image = imagename
-        container.name = deploy
-        container.env = []
-
-        for key in envvar:
-            v = client.V1EnvVar()
-            v.name = key
-            v.value = envvar[key]
-            container.env.append(v)
-
-        container.ports = []
-        for o in range(0, len(port)):
-            p = client.V1ContainerPort()
-            p.name = ("{port}-{tcp}".format(**port[o]))
-            p.protocol = "TCP"
-            p.container_port = port[l]['tcp']
-            container.ports.append(p)
-
-        pmt.labels = {namespace: deploy}
-        pmt.name = deploy
-
-        podspec.containers = [container]
-
-        podtemp.metadata = pmt
-        podtemp.spec = podspec
-
-        dcspec.replicas = 2
-        dcspec.selector = {namespace: deploy}
-        dcspec.template = podtemp
-        dcspec.strategy = strategy
-
-        bdc.api_version = 'v1'
-        bdc.spec = dcspec
-        bdc.metadata = dcmeta
-        bdc.kind = 'DeploymentConfig'
+    def listdc(self, dcsel):
+        api_del = openshift.client.OapiApi()
+        namespace = self.namespace
+        pretty = 'true'
+        timeout_seconds = 5
 
         try:
-            self.k1.create_namespaced_service(namespace=namespace, body=bservice, pretty='true')
+            api_response = api_del.list_namespaced_deployment_config(namespace, pretty=pretty, label_selector=dcsel,
+                                                                     timeout_seconds=timeout_seconds)
+            dcs = []
+
+            for h in range(0, len(api_response.items)):
+                dcs.append(api_response.items[h].metadata.name)
+            return dcs
+
         except ApiException as e:
-            print("Exception when calling OapiApi->create_service: %s\n" % e)
+            print("Exception when calling OapiApi->list_namespaced_deployment_config: %s\n" % e)
+
+    def listsvc(self, svcsel):
+        api_instance = kubernetes.client.CoreV1Api()
+        namespace = self.namespace
+        pretty = 'true'
+        timeout_seconds = 5
 
         try:
-            self.o1.create_namespaced_deployment_config(namespace=namespace, body=bdc, pretty='true')
+            api_response = api_instance.list_namespaced_service(namespace, pretty=pretty,
+                                                                label_selector=svcsel, timeout_seconds=timeout_seconds)
+            svcs = []
+            for h in range(0, len(api_response.items)):
+                svcs.append(api_response.items[h].metadata.name)
+            return svcs
+
+
         except ApiException as e:
-            print("Exception when calling OapiApi->create_dc: %s\n" % e)
+            print("Exception when calling CoreV1Api->list_namespaced_service: %s\n" % e)
 
-    def createroute(self, target, service, deploy, namespace):
-        rbody = openshift.client.V1Route()
-        routemeta = V1ObjectMeta()
-        routespec = openshift.client.V1RouteSpec()
-        routeport = openshift.client.V1RoutePort()
-        routeto = openshift.client.V1RouteTargetReference()
-
-        routeport.target_port = target
-        routeto.kind = 'Service'
-        routeto.name = service
-        routeto.weight = 100
-
-        routespec.host = service + '[address].it'
-        routespec.port = routeport
-        routespec.to = routeto
-
-        routemeta.labels = {namespace: deploy}
-        routemeta.name = service
-        routemeta.namespace = namespace
-
-        rbody.api_version = 'v1'
-        rbody.kind = 'Route'
-        rbody.metadata = routemeta
-        rbody.spec = routespec
+    def listroute(self, rtsel):
+        api_instance = openshift.client.OapiApi()
+        namespace = self.namespace
+        timeout_seconds = 5  # int | Timeout for the list/watch call. (optional)
 
         try:
-            self.o1.create_namespaced_route(namespace=namespace, body=rbody, pretty='true')
-        
+            api_response = api_instance.list_namespaced_route(namespace, pretty='true', label_selector=rtsel,
+                                                              timeout_seconds=timeout_seconds)
+            rts = []
+            for h in range(0, len(api_response.items)):
+                rts.append(api_response.items[h].metadata.name)
+            return rts
+
         except ApiException as e:
-            print("Exception when calling OapiApi->create_route: %s\n" % e)
- 
-  
+            print("Exception when calling OapiApi->list_namespaced_route: %s\n" % e)
+
+    def listrcs(self, rcsel):
+        api_instance = kubernetes.client.CoreV1Api()
+        namespace = self.namespace
+        include_uninitialized = 'true'
+        timeout_seconds = 5
+        # watch = true  # bool | Watch for changes to the described resources and return them as a stream of add,
+        # update, and remove notifications. Specify resourceVersion. (optional)
+
+        try:
+            api_response = api_instance.list_namespaced_replication_controller(namespace, pretty='true',
+                                                                               label_selector=rcsel,
+                                                                               timeout_seconds=timeout_seconds)
+            rcs = []
+            for h in range(0, len(api_response.items)):
+                rcs.append(api_response.items[h].metadata.name)
+            return rcs
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->list_namespaced_replication_controller: %s\n" % e)
+
+
