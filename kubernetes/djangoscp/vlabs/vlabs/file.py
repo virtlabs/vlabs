@@ -1,2 +1,5 @@
 class Prova:
-    pass
+    def pippo(self):
+        pi = 76
+        return pi
+

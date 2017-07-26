@@ -19,5 +19,5 @@ from vlabs.views import hello
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^hello/$', hello),
+    url(r'^marketplace/$', marketplace),
 ]
