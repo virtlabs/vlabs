@@ -1,0 +1,2 @@
+class Prova:
+    pass
