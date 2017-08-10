@@ -1,16 +1,13 @@
 import kubernetes.config
 import kubernetes.client
-from pprint import pprint
 import yaml
-import time
 from kubernetes.client.rest import ApiException
 import openshift.client
-
 from creation import Provision
 from deletion import Del
+from pprint import pprint
 
 kubernetes.config.load_kube_config()
-
 
 class Config:
     def __init__(self):
@@ -21,6 +18,7 @@ class Config:
         pass
 
     def getmarket(self):
+        mk = []
         for j in range(0, len(self.ysrvc['marketplace']['apps'])):
             mk.append(self.ysrvc['marketplace']['apps'][j]['name'])
         return mk
@@ -34,7 +32,7 @@ class Config:
             print(self.ysrvc['marketplace']['apps'][app_index])
         except:
             print("app non esistente")
-
+    
     def getports(self, app):
         try:
             app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
@@ -45,15 +43,22 @@ class Config:
         except:
             print("app non esistente")
 
-    def getenv(self, app):
-        pass
-        '''
-        for j in range(0, len(self.ysrvc['marketplace'])):
-            self.srvc = self.ysrvc['marketplace'][j]
-            print(self.srvc['env'])
-        '''
-        # print(self.ysrvc['marketplace']['moodle']['imagename'])
+    def getenv(self, index):
+        varuser = []
+        vardesc = []
+        q = int(index)
+        try:
+            for j in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
+                for i in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'])):
+                    if self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['type'] == 'input':
+                        varuser.append(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name'])
+                        vardesc.append(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['description'])
+            D = dict(zip(varuser, vardesc))
+            D['appindex'] = q
+            return D
 
+        except:
+            print("app non esistente")
 
 class AppManager:
     def __init__(self, namespace):
@@ -69,10 +74,10 @@ class AppManager:
                                                                 timeout_seconds=timeout_seconds)
             itemslist = api_response.items
             y = len(itemslist)
+            name = []
             for x in range(0, y):
-                name = itemslist[x].metadata.name
-                print(name)
-                x += 1
+                name.append(itemslist[x].metadata.name)
+            return name
 
         except ApiException as e:
             print("Exception when calling CoreV1Api->list_namespaced_services: %s\n" % e)
@@ -94,6 +99,22 @@ class AppManager:
 
             # except:
             #    print("app non esistente")
+
+    '''
+    def create2(self, app, nameapp, ):
+        e = Var()
+        app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
+        service = self.ysrvc['marketplace']['apps'][app_index]['name']
+        for j in range(0, len(self.ysrvc['marketplace']['apps'][app_index]['services'])):
+            deploy = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['nameservice']
+            imagename = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['imagename']
+            port = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['ports']
+            ev = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['env']
+            envvar = e.evs(ev)
+            psvc = Provision()
+            psvc.createsvc(deploy, port, imagename, self.namespace, envvar, nameapp, service)
+    '''
+
 
     def delete(self, dellabel):
         dcs = self.listdc(dellabel)
@@ -148,7 +169,7 @@ class AppManager:
     def listroute(self, rtsel):
         api_instance = openshift.client.OapiApi()
         namespace = self.namespace
-        timeout_seconds = 5  # int | Timeout for the list/watch call. (optional)
+        timeout_seconds = 5
 
         try:
             api_response = api_instance.list_namespaced_route(namespace, pretty='true', label_selector=rtsel,
@@ -164,10 +185,7 @@ class AppManager:
     def listrcs(self, rcsel):
         api_instance = kubernetes.client.CoreV1Api()
         namespace = self.namespace
-        include_uninitialized = 'true'
         timeout_seconds = 5
-        # watch = true  # bool | Watch for changes to the described resources and return them as a stream of add,
-        # update, and remove notifications. Specify resourceVersion. (optional)
 
         try:
             api_response = api_instance.list_namespaced_replication_controller(namespace, pretty='true',

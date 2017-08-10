@@ -1,3 +1,4 @@
+domain: '.web.rmlab.infn.it'
 marketplace:
     apps:
       - name: 'moodle'
@@ -9,11 +10,26 @@ marketplace:
                 route: 'yes'
             imagename: 'virtuallabs/moodlevlabs'
             env:
-                DB_HOST: "'one-mysql'"
-                DB_NAME: 'moodle'
-                DB_USER: 'moodle'
-                DB_PASSWD: 'moodle'
-                WWW_ROOT: "'http://one-moodle.web.rmlab.infn.it'"
+              - name: 'DB_HOST'
+                type: 'service'
+                service: 'mysql'
+                value: 'nameservice'
+              - name: 'DB_NAME'
+                type: 'variable'
+                service: 'mysql'
+                variable: MYSQL_DATABASE
+              - name: 'DB_USER'
+                type: 'variable'
+                service: 'mysql'
+                variable: MYSQL_USER
+              - name: 'DB_PASSWD'
+                type: 'variable'
+                service: 'mysql'
+                variable: MYSQL_DATABASE
+              - name: 'WWW_ROOT'
+                type: 'route'
+                service: 'moodle'
+                port: 'moodle'
 
           - nameservice: 'mysql'
             ports:
@@ -22,10 +38,18 @@ marketplace:
                 route: 'no'
             imagename: 'mysql'
             env:
-                MYSQL_DATABASE: 'moodle'
-                MYSQL_ROOT_PASSWORD: 'moodle'
-                MYSQL_USER: 'moodle'
-                MYSQL_PASSWORD: 'moodle'
+              - name: 'MYSQL_DATABASE'
+                type: 'input'
+                description: 'db name'
+              - name: 'MYSQL_ROOT_PASSWORD'
+                type: 'input'
+                description: 'db root pwd'
+              - name: 'MYSQL_USER'
+                type: 'input'
+                description: 'username db'
+              - name: 'MYSQL_PASSWORD'
+                type: 'input'
+                description: 'db pwd'
 
       - name: 'python'
         services:
@@ -36,8 +60,12 @@ marketplace:
                 route: 'yes'
             imagename: 'virtuallabs/psiabox'
             env:
-                SX_U: 'SX_U'
-                SX_P: 'SX_P'
+              - name: 'SX_U'
+                type: 'input'
+                description: 'username'
+              - name: 'SX_P'
+                type: 'input'
+                description: 'password'
 
       - name: 'vnccentos'
         services:
@@ -48,5 +76,10 @@ marketplace:
                 route: 'yes'
             imagename: 'virtuallabs/vnccentos'
             env:
-                VNC_RESOLUTION: 'VNC_RESOLUTION'
-                VNC_PWD: 'VNC_password'
+              - name: 'VNC_RESOLUTION'
+                type: 'static'
+                value: '1024x768'
+              - name: 'VNC_PWD'
+                type: 'input'
+                description: 'password'
+

@@ -1,8 +1,5 @@
 from kubernetes import config, client
-# from pprint import pprint
-# from kubernetes.client.models.v1_container import V1Container
 from kubernetes.client.models.v1_object_meta import V1ObjectMeta
-# from kubernetes.client.models.v1_pod_spec import V1PodSpec
 import openshift.client.models
 import kubernetes.client.models
 import openshift.client
@@ -31,11 +28,11 @@ class Provision:
 
         idname = nameapp + "-" + deploy
 
-        smeta.name = idname   # ##############################EJELO! occhio qui!
+        smeta.name = idname   # !!!
         smeta.namespace = namespace
-        smeta.labels = {"label": idname, "bundle": service + "-" + nameapp}  # podlabel
+        smeta.labels = {"label": idname, "bundle": service + "-" + nameapp}
 
-        sspec.selector = {"label": idname}  # podlabel
+        sspec.selector = {"label": idname}
         sspec.ports = []
 
         for l in range(0, len(port)):
