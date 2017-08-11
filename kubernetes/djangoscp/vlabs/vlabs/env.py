@@ -28,13 +28,13 @@ class Var:
                     for k in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
                         if self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['service'] == \
                                 self.ysrvc['marketplace']['apps'][q]['services'][k]['nameservice']:
-                            var[str(inputvar['nameoftheapp'])][j][
-                                self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = \
-                                var[str(inputvar['nameoftheapp'])][k][
-                                    self.ysrvc['marketplace']['apps'][q]['services'][k]['env'][i]['name']]
-                            # la var devo prenderla in k e salvarla in j
-                            pass
-                    pass
+                            for l in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][k]['env'])):
+                                if self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['variable'] == self.ysrvc['marketplace']['apps'][q]['services'][k]['env'][l]['name']:
+                                    var[str(inputvar['nameoftheapp'])][j][
+                                        self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = \
+                                        var[str(inputvar['nameoftheapp'])][k][
+                                            self.ysrvc['marketplace']['apps'][q]['services'][k]['env'][l]['name']]
+                            
 
         # SERVICE
         for j in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
@@ -46,7 +46,8 @@ class Var:
                             idname = str(inputvar['nameoftheapp']) + "-" + \
                                      self.ysrvc['marketplace']['apps'][q]['services'][j]['nameservice']
                             var[str(inputvar['nameoftheapp'])][j][
-                                self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = idname
+                                self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = str(inputvar['nameoftheapp']) + "-" + \
+                                     self.ysrvc['marketplace']['apps'][q]['services'][k]['nameservice'] 
 
         # static
         for j in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
