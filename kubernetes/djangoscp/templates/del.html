@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Marketplace</title>
+    <title>Deletion page</title>
 </head>
 <body>
-    <p>Services: {{ current_market }}</p>
-    <p>Scegli il tuo servizio</p>
-<form action="/app/" name="form" method="POST">
+    <p>Services: {{ running_services }}</p>
+    <p>Scegli il servizio da cancellare</p>
+<form action="/deletion/" name="form" method="POST">
         {% csrf_token %}
         {{ form }}
 <input type="submit" value="Submit" />

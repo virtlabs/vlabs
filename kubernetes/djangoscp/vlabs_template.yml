@@ -25,7 +25,7 @@ marketplace:
               - name: 'DB_PASSWD'
                 type: 'variable'
                 service: 'mysql'
-                variable: MYSQL_PASSWORD
+                variable: MYSQL_DATABASE
               - name: 'WWW_ROOT'
                 type: 'route'
                 service: 'moodle'
@@ -82,4 +82,55 @@ marketplace:
               - name: 'VNC_PWD'
                 type: 'input'
                 description: 'password'
+
+      - name: 'owncloud'
+        services:
+          - nameservice: 'owncloud'
+            ports:
+              - port: 'owncloud'
+                tcp: 80
+                route: 'yes'
+            imagename: 'owncloud'
+            env:
+              - name: 'DB_HOST'
+                type: 'service'
+                service: 'mysql'
+                value: 'nameservice'
+              - name: 'DB_NAME'
+                type: 'variable'
+                service: 'mysql'
+                variable: MYSQL_DATABASE
+              - name: 'DB_USER'
+                type: 'variable'
+                service: 'mysql'
+                variable: MYSQL_USER
+              - name: 'DB_PASSWD'
+                type: 'variable'
+                service: 'mysql'
+                variable: MYSQL_DATABASE
+              - name: 'WWW_ROOT'
+                type: 'route'
+                service: 'moodle'
+                port: 'moodle'
+
+
+          - nameservice: 'mysql'
+            ports:
+              - port: 'mysql'
+                tcp: 3306
+                route: 'no'
+            imagename: 'mysql'
+            env:
+              - name: 'MYSQL_DATABASE'
+                type: 'input'
+                description: 'db name'
+              - name: 'MYSQL_ROOT_PASSWORD'
+                type: 'input'
+                description: 'db root pwd'
+              - name: 'MYSQL_USER'
+                type: 'input'
+                description: 'username db'
+              - name: 'MYSQL_PASSWORD'
+                type: 'input'
+                description: 'db pwd'
 

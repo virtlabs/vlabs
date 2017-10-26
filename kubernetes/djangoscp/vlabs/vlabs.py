@@ -5,7 +5,7 @@ from kubernetes.client.rest import ApiException
 import openshift.client
 from creation import Provision
 from deletion import Del
-from pprint import pprint
+
 
 kubernetes.config.load_kube_config()
 
@@ -32,7 +32,7 @@ class Config:
             print(self.ysrvc['marketplace']['apps'][app_index])
         except:
             print("app non esistente")
-    
+
     def getports(self, app):
         try:
             app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
@@ -59,6 +59,7 @@ class Config:
 
         except:
             print("app non esistente")
+
 
 class AppManager:
     def __init__(self, namespace):
@@ -100,27 +101,13 @@ class AppManager:
             # except:
             #    print("app non esistente")
 
-    '''
-    def create2(self, app, nameapp, ):
-        e = Var()
-        app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
-        service = self.ysrvc['marketplace']['apps'][app_index]['name']
-        for j in range(0, len(self.ysrvc['marketplace']['apps'][app_index]['services'])):
-            deploy = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['nameservice']
-            imagename = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['imagename']
-            port = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['ports']
-            ev = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['env']
-            envvar = e.evs(ev)
-            psvc = Provision()
-            psvc.createsvc(deploy, port, imagename, self.namespace, envvar, nameapp, service)
-    '''
-
-
     def delete(self, dellabel):
-        dcs = self.listdc(dellabel)
-        svcs = self.listsvc(dellabel)
-        rts = self.listroute(dellabel)
-        rcs = self.listrcs(dellabel)
+        lbl='label='+ dellabel
+        dcs = self.listdc(lbl)
+        svcs = self.listsvc(lbl)
+        rts = self.listroute(lbl)
+        rcs = self.listrcs(lbl)
+        print(dellabel, lbl, dcs, svcs, rcs)
 
         dd = Del()
         dd.delrt(rts, self.namespace)
@@ -197,5 +184,4 @@ class AppManager:
             return rcs
         except ApiException as e:
             print("Exception when calling CoreV1Api->list_namespaced_replication_controller: %s\n" % e)
-
 
