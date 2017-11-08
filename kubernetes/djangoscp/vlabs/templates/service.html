@@ -1,0 +1,80 @@
+{% load bootstrap_themes %}
+{% load bootstrap4 %}
+{% bootstrap_css %}
+{% bootstrap_javascript %}
+{% bootstrap_messages %}
+{% bootstrap_styles theme='cerulean' type='css' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <title>Service</title>
+</head>
+<body>
+<h1>App: {{ bundle }}</h1>
+<h2>Services: {% for key, value in serviceenv.items %} {{ key }} {% endfor %}</h2>
+
+<!--
+<table class="table table-striped table-hover ">
+  <thead>
+    <tr>
+      <th class="active">Services</th>
+      <th class="active">Variable</th>
+      <th class="warning">Value</th>
+    </tr>
+  </thead>
+  {% for key, value in serviceenv.items %}
+        {% for vv in value %}
+        {% cycle '<tr>'  '' %}
+        <td class="info">{{ key }}</td>
+        <td class="success">{{ vv.name }}</td>
+        <td class="success">{{ vv.value }}</td>
+        {% cycle  '</tr>' '' %}
+    {% endfor %}
+  {% endfor %}
+
+</table>
+-->
+<!-- {{serviceenv}} -->
+
+
+{% for key, value in serviceenv.items %}
+<div id="accordion" role="tablist" aria-multiselectable="false">
+  <div class="card">
+    <div class="card-header" role="tab" id="heading{{key}}">
+      <h5 class="mb-0">
+        <a data-toggle="collapse" data-parent="#accordion" href="#{{ key }}" aria-expanded="true" aria-controls="{{ key }}">
+            <h2>{{ key|upper }}</h2>
+        </a>
+      </h5>
+    </div>
+
+    <div id="{{ key }}" class="collapse show" role="tabpanel" aria-labelledby="heading{{key}}">
+      <div class="card-block">
+          <table class="table table-striped table-hover ">
+                <thead>
+                <tr>
+                    <th class="active">Variable</th>
+                    <th class="warning">Value</th>
+                </tr>
+  </thead>
+        {% for vv in value %}
+        {% cycle '<tr>'  '' %}
+        <td class="success">{{ vv.name }}</td>
+        <td class="success">{{ vv.value }}</td>
+        {% cycle  '</tr>' '' %}
+        {% endfor %}
+          </table>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endfor %}
+<p><a class="btn btn-danger" href="/del/?service={{ service }}">Delete App</a></p>
+</body>
+</html>

@@ -4,15 +4,27 @@ from django.shortcuts import render
 from forms import VlabsForm
 from pprint import pprint
 from env import Var
+import re
 
 
 def index(request):
     getrun = AppManager('test-project')
     name = getrun.getrunning()
+    rtv2 = []
+    timestatus = []
+    lab = []
+    s = []
+    for i in range(0, len(name)):
+        timestatus.append(getrun.svcstatus(name[i]))
+        lab.append(getrun.getbundle(name[i]))
+        s.append(lab[i].split("=")[1])
+        print(s)
+        rtv2.append(getrun.readroute(getrun.getbundle(name[i])))
+    rtv = zip(s, rtv2, timestatus, lab)
     return render(
         request,
         'index.html',
-        context={'running_services': name},
+        context={'running_services': rtv}
     )
 
 
@@ -60,9 +72,37 @@ def to_del(request):
 
 def delend(request):
     delradio = request.POST.get('run')
-    pprint(delradio)
     getrun = AppManager('test-project')
     name = getrun.getrunning()
     print("nome dell'applicazione da cancellare" + name[int(delradio)])
     getrun.delete(name[int(delradio)])
     return render(request, 'postdel.html')
+
+
+def envsvc(request):
+    getrun = AppManager('test-project')
+    if request.method == 'GET':
+        svcsel = request.GET.get('service')
+        svc = getrun.listsvc(svcsel)
+        serviceenv = getrun.getrunbundleenv(svc)
+        return render(request, 'service.html', {'serviceenv': serviceenv, 'bundle': svcsel.split("=")[1], 'service': svcsel})
+
+
+def delsvc(request):
+    getrun = AppManager('test-project')
+    dsvc = request.GET.get('service')
+    getrun.delete(dsvc)
+    return render(request, 'postdel.html')
+
+
+
+def test(request):
+    getrun2 = AppManager('test-project')
+    rtv2 = getrun2.readroute('root1')
+    return render(
+        request,
+        'test.html',
+        context={'rtv': rtv2},
+    )
+
+

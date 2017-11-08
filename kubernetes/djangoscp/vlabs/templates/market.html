@@ -1,0 +1,32 @@
+{% load bootstrap_themes %}
+{% bootstrap_styles theme='cerulean' type='css' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Marketplace</title>
+</head>
+    <h1>V-LABS</h1>
+<div class="well bs-component">
+    <form action="/app/" name="form" method="POST" class="form-horizontal">
+    <fieldset>
+    <legend><h2>Scegli il tuo servizio</h2></legend>
+    <div class="form-group">
+      <label class="col-lg-2 control-label">Servizi</label>
+      <div class="col-lg-10">
+          <div class="radio">
+            {% csrf_token %}
+            {{ form }}
+        </div>
+
+
+        <input type="submit" value="Submit" class="btn btn-primary"/>
+      </div>
+    </div>
+    </fieldset>
+    </form>
+</div>
+
+
+</body>
+</html>

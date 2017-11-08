@@ -1,0 +1,44 @@
+{% load bootstrap_themes %}
+{% bootstrap_styles theme='cerulean' type='css' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CreaAPP</title>
+</head>
+<body>
+<!--
+variabili servizio
+{{ appi }}
+<form action="/postcreate/" name="form" method="POST">
+    <div class="form">
+       {% csrf_token %}
+       {{ form.as_p }}
+
+    </div>
+
+    <input type="submit" value="Create App" />
+
+</form>
+-->
+<div class="well bs-component">
+    <form action="/postcreate/" name="form" method="POST" class="form-horizontal">
+    <fieldset>
+    <legend><h2>Variabili Servizio</h2></legend>
+    <div class="form-group">
+
+      <div class="col-lg-10">
+          {% csrf_token %}
+          {{ form.as_p }}
+
+
+        <input type="submit" value="Create App" class="btn btn-primary"/>
+      </div>
+    </div>
+    </fieldset>
+    </form>
+</div>
+
+
+</body>
+</html>

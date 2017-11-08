@@ -1,7 +1,7 @@
 from django.conf.urls import url
 from django.contrib import admin
 import views
-from views import get_name, get_app, postcreation, to_del, delend
+from views import get_name, get_app, postcreation, to_del, delend, test, envsvc, delsvc
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
@@ -11,4 +11,7 @@ urlpatterns = [
     url(r'^app/$', get_app),
     url(r'^postcreate/$', postcreation),
     url(r'^deletion/$', delend),
+    url(r'^del/$', delsvc),
+    url(r'^service/$', envsvc),
+    url(r'^test/$', test),
 ]

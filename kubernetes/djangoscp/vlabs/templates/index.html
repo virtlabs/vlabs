@@ -8,25 +8,37 @@
 <body>
     <h1>V-LABS</h1>
     <h2>Running Services</h2>
-    <p>{{ running_services }}</p>
 
 <table class="table table-striped table-hover ">
   <thead>
     <tr>
       <th class="active">#</th>
       <th class="active">Service</th>
+      <th class="active">Route</th>
+      <th class="active">Creation Timestamp</th>
     </tr>
   {% for r in running_services %}
     {% cycle '<tr>'  '' %}
       <td class="info">{{forloop.counter0}}</td>
-      <td class="success">{{r}}</td>
+      <td class="success"><a class="btn-link" href="/service/?service={{ r.3 }}">{{r.0}}</a></td>
+      <td class="success">
+          {% if r.1 %}
+            {% for k in r.1 %}
+                <a class="btn-link" href="http://{{ k }}">{{k}}</a>
+            {% endfor %}
+          {% else %}
+            {{ r.1 }}
+          {% endif %}
+      </td>
+      <td class="success">{{r.2}}</td>
     {% cycle  '</tr>' '' %}
   {% endfor %}
 </table>
 
     <p><a href="/marketplace/" class="btn btn-primary">Add Service</a></p>
-    <p><a href="/running/" class="btn btn-danger">Delete Service</a></p>
-
+<!--    <p><a href="/running/" class="btn btn-danger">Delete Service</a></p>
+    <p><a href="/test/" class="btn btn-danger">test</a></p>
+-->
 
 </body>
 </html>

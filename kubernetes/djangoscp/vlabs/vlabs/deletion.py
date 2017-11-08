@@ -9,8 +9,8 @@ class Del():
     def _init_(self):
         pass
 
-    def delsvc(self, svcs, namespace):
-        api_instance = kubernetes.client.CoreV1Api()
+    def delsvc(self, svcs, namespace, kcfg):
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
         for i in range(0, len(svcs)):
             try:
                 api_response = api_instance.delete_namespaced_service(svcs[i], namespace, pretty='true')
@@ -18,8 +18,8 @@ class Del():
             except ApiException as e:
                 print("Exception when calling CoreV1Api->delete_namespaced_service: %s\n" % e)
 
-    def deldc(self, dcs, namespace):
-        api_instance = openshift.client.OapiApi()
+    def deldc(self, dcs, namespace, ocfg):
+        api_instance = openshift.client.OapiApi(ocfg)
         body = kubernetes.client.models.V1DeleteOptions()
         body.api_version = 'v1'
         body.kind = 'DeleteOptions'
@@ -33,8 +33,8 @@ class Del():
             except ApiException as e:
                 print("Exception when calling OapiApi->delete_namespaced_deployment_config: %s\n" % e)
 
-    def delrc(self, rcs, namespace):
-        api_instance = kubernetes.client.CoreV1Api()
+    def delrc(self, rcs, namespace, kcfg):
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
         body = kubernetes.client.V1DeleteOptions()
         for i in range(len(rcs)):
 
@@ -46,8 +46,8 @@ class Del():
             except ApiException as e:
                 print("Exception when calling CoreV1Api->delete_namespaced_replication_controller: %s\n" % e)
 
-    def delrt(self, rts, namespace):
-        api_instance = openshift.client.OapiApi()
+    def delrt(self, rts, namespace, ocfg):
+        api_instance = openshift.client.OapiApi(ocfg)
         body = kubernetes.client.models.V1DeleteOptions()
         body.api_version = 'v1'
         body.kind = 'DeleteOptions'
@@ -61,8 +61,8 @@ class Del():
             except ApiException as e:
                 print("Exception when calling OapiApi->delete_namespaced_route: %s\n" % e)
 
-    def setrc(self, rcs, namespace):
-        api_instance = kubernetes.client.CoreV1Api()
+    def setrc(self, rcs, namespace, kcfg):
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
         body = {'spec': {"replicas": 0}}
         for i in range(len(rcs)):
             try:

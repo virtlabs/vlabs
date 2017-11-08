@@ -1,13 +1,18 @@
-import kubernetes.config
+import kubernetes.config as kconf
 import kubernetes.client
 import yaml
 from kubernetes.client.rest import ApiException
 import openshift.client
+import openshift.config as oconf
 from creation import Provision
 from deletion import Del
+from openshift.client.models import V1DeploymentConfigList, V1DeploymentConfig, V1Route
+from openshift.client.models.v1_route_list import V1RouteList
 
+# kubernetes.config.load_kube_config()
+kcfg = kconf.new_client_from_config()
+ocfg = oconf.new_client_from_config()
 
-kubernetes.config.load_kube_config()
 
 class Config:
     def __init__(self):
@@ -68,7 +73,7 @@ class AppManager:
         self.ysrvc = yaml.load(self.stream)
 
     def getrunning(self):
-        api_instance = kubernetes.client.CoreV1Api()
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
         timeout_seconds = 56
         try:
             api_response = api_instance.list_namespaced_service(self.namespace, pretty='true',
@@ -101,24 +106,42 @@ class AppManager:
             # except:
             #    print("app non esistente")
 
-    def delete(self, dellabel):
-        lbl='label='+ dellabel
+    def delete(self, lbl):
+        #lbl = 'label=' + dellabel
+        bundle = lbl.split("=")[1]
         dcs = self.listdc(lbl)
         svcs = self.listsvc(lbl)
         rts = self.listroute(lbl)
         rcs = self.listrcs(lbl)
-        print(dellabel, lbl, dcs, svcs, rcs)
+        print(lbl, bundle, dcs, svcs, rcs)
 
         dd = Del()
-        dd.delrt(rts, self.namespace)
-        dd.delsvc(svcs, self.namespace)
-        dd.deldc(dcs, self.namespace)
-        dd.setrc(rcs, self.namespace)
-        dd.delrc(rcs, self.namespace)
+        dd.delrt(rts, self.namespace, ocfg)
+        dd.delsvc(svcs, self.namespace, kcfg)
+        dd.deldc(dcs, self.namespace, ocfg)
+        dd.setrc(rcs, self.namespace, kcfg)
+        dd.delrc(rcs, self.namespace, kcfg)
 
+    def listdcnosel(self):
+        api_del = openshift.client.OapiApi(ocfg)
+        namespace = self.namespace
+        pretty = 'true'
+        timeout_seconds = 5
+
+        try:
+            api_response = api_del.list_namespaced_deployment_config(namespace, pretty=pretty,
+                                                                     timeout_seconds=timeout_seconds)
+            dcs = []
+
+            for h in range(0, len(api_response.items)):
+                dcs.append(api_response.items[h].metadata.name)
+            return dcs
+
+        except ApiException as e:
+            print("Exception when calling OapiApi->list_namespaced_deployment_config: %s\n" % e)
 
     def listdc(self, dcsel):
-        api_del = openshift.client.OapiApi()
+        api_del = openshift.client.OapiApi(ocfg)
         namespace = self.namespace
         pretty = 'true'
         timeout_seconds = 5
@@ -136,7 +159,8 @@ class AppManager:
             print("Exception when calling OapiApi->list_namespaced_deployment_config: %s\n" % e)
 
     def listsvc(self, svcsel):
-        api_instance = kubernetes.client.CoreV1Api()
+        # listsvc by selector
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
         namespace = self.namespace
         pretty = 'true'
         timeout_seconds = 5
@@ -154,9 +178,10 @@ class AppManager:
             print("Exception when calling CoreV1Api->list_namespaced_service: %s\n" % e)
 
     def listroute(self, rtsel):
-        api_instance = openshift.client.OapiApi()
+        api_instance = openshift.client.OapiApi(ocfg)
         namespace = self.namespace
         timeout_seconds = 5
+        api_response = V1RouteList()
 
         try:
             api_response = api_instance.list_namespaced_route(namespace, pretty='true', label_selector=rtsel,
@@ -170,7 +195,7 @@ class AppManager:
             print("Exception when calling OapiApi->list_namespaced_route: %s\n" % e)
 
     def listrcs(self, rcsel):
-        api_instance = kubernetes.client.CoreV1Api()
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
         namespace = self.namespace
         timeout_seconds = 5
 
@@ -185,3 +210,56 @@ class AppManager:
         except ApiException as e:
             print("Exception when calling CoreV1Api->list_namespaced_replication_controller: %s\n" % e)
 
+    def readroute(self, sel):
+        api_instance = openshift.client.OapiApi(ocfg)
+        namespace = self.namespace
+        timeout_seconds = 5
+        api_response = V1Route()
+        try:
+            api_response = api_instance.list_namespaced_route(namespace, label_selector=sel, pretty='true')
+            spek = api_response
+            rtalias = []
+            for i in range(0, len(spek.items)):
+                rtalias.append(spek.items[i].spec.host)
+            print(rtalias)
+            return rtalias
+
+        except ApiException as e:
+            print("Exception when calling OapiApi->list_namespaced_route: %s\n" % e)
+
+    def svcstatus(self, name):
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
+
+        try:
+            api_response = api_instance.read_namespaced_service(name, self.namespace, pretty='true')
+            return api_response.metadata.creation_timestamp
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->read_namespaced_service_status: %s\n" % e)
+
+    def getrunbundleenv(self, singlesvc):
+        api_instance = openshift.client.OapiApi(ocfg)
+        serviceenv = []
+        try:
+            for i in range(0, len(singlesvc)):
+                api_response = api_instance.read_namespaced_deployment_config(singlesvc[i], self.namespace, pretty='true')
+                serviceenv.append(api_response.spec.template.spec.containers[0].env)
+                senv = dict(zip(singlesvc, serviceenv))
+            return senv
+        except ApiException as e:
+                print("Exception when calling OapiApi->read_namespaced_deployment_config: %s\n" % e)
+
+    def getbundle(self, name):
+        api_instance = kubernetes.client.CoreV1Api(kcfg)
+
+        try:
+            api_response = api_instance.read_namespaced_service(name, self.namespace, pretty='true')
+            sel = api_response.metadata.labels
+            if 'bundle' in sel:
+                selector = 'bundle=' + sel['bundle']
+            else:
+                selector = 'app=' + sel['app']
+            print(selector)
+            return selector
+
+        except ApiException as e:
+            print("Exception when calling CoreV1Api->read_namespaced_service_status: %s\n" % e)

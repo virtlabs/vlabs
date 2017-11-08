@@ -1,16 +1,19 @@
-from kubernetes import config, client
+from kubernetes import config as kconf, client
 from kubernetes.client.models.v1_object_meta import V1ObjectMeta
 import openshift.client.models
 import kubernetes.client.models
 import openshift.client
+from openshift import config as oconf
 from kubernetes.client.rest import ApiException
 
 
 class Provision:
     def __init__(self):
-        config.load_kube_config()
-        self.o1 = openshift.client.OapiApi()
-        self.k1 = kubernetes.client.CoreV1Api()
+        #config.load_kube_config()
+        kcfg = kconf.new_client_from_config()
+        ocfg = oconf.new_client_from_config()
+        self.o1 = openshift.client.OapiApi(ocfg)
+        self.k1 = kubernetes.client.CoreV1Api(kcfg)
 
     def createsvc(self, deploy, port, imagename, namespace, envvar, nameapp, service):
         bservice = client.V1Service()
