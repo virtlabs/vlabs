@@ -1,6 +1,7 @@
 import yaml
 from vlabs import AppManager
 from creation import Provision
+from volumes import Vol
 
 
 class Var:
@@ -10,9 +11,15 @@ class Var:
         self.namespace = 'test-project'
 
     def buildvar(self, inputvar):
+        if 'pvc' in inputvar:
+            pvc = True
+        else:
+            pvc = False
+
         var = {}
         q = int(inputvar['appindex'])
         var[str(inputvar['nameoftheapp'])] = {}
+        print(pvc)
         # INPUT
         for j in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
             var[str(inputvar['nameoftheapp'])][j] = {}
@@ -70,9 +77,12 @@ class Var:
                         self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = "http://" + idname + \
                                                                                                  self.ysrvc['domain']
         print(var)
-        self.create(q, str(inputvar['nameoftheapp']), var)
+        self.create(q, str(inputvar['nameoftheapp']), var, pvc)
 
-    def create(self, app_index, nameapp, var):
+    def create(self, app_index, nameapp, var, pvc=None):
+        pv = Vol()
+        volumename = None
+        datadir = None
         # app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
         service = self.ysrvc['marketplace']['apps'][app_index]['name']
         for j in range(0, len(self.ysrvc['marketplace']['apps'][app_index]['services'])):
@@ -81,4 +91,15 @@ class Var:
             port = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['ports']
             envvar = var[nameapp][j]
             psvc = Provision()
-            psvc.createsvc(deploy, port, imagename, self.namespace, envvar, nameapp, service)
+
+            if pvc:
+                if self.ysrvc['marketplace']['apps'][app_index]['services'][j]['volumes']['persistentvolumeclaim'] == 'yes':
+                    datadir = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['volumes']['datadir']
+                    pv.createvolume(nameapp, deploy, datadir)
+                    volumename = pv.pvc(nameapp, deploy)
+                else:
+                    pass
+            else:
+                pass
+
+            psvc.createsvc(deploy, port, imagename, self.namespace, envvar, nameapp, service, pvc, volumename, datadir)

@@ -6,6 +6,7 @@ import openshift.client
 import openshift.config as oconf
 from creation import Provision
 from deletion import Del
+from volumes import Vol
 from openshift.client.models import V1DeploymentConfigList, V1DeploymentConfig, V1Route
 from openshift.client.models.v1_route_list import V1RouteList
 
@@ -90,6 +91,7 @@ class AppManager:
 
     def create(self, app):
         # try:
+
         nameapp = raw_input("Inserisci il nome della tua applicazione: ")
         app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
         service = self.ysrvc['marketplace']['apps'][app_index]['name']
@@ -101,6 +103,7 @@ class AppManager:
 
             psvc = Provision()
             psvc.createsvc(deploy, port, imagename, self.namespace, envvar, nameapp, service)
+
 
 
             # except:

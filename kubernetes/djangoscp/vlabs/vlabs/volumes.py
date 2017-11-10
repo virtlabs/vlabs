@@ -7,51 +7,50 @@ from kubernetes import config, client
 from kubernetes.client.models.v1_object_meta import V1ObjectMeta
 import openshift.client.models
 import kubernetes.client.models
-from kubernetes.client.models import V1PersistentVolumeSpec, V1PersistentVolumeStatus
+from kubernetes.client.models import V1PersistentVolumeSpec, V1PersistentVolumeStatus, V1ResourceRequirements
 import openshift.client
-from kubernetes.client.models.v1_nfs_volume_source import V1NFSVolumeSource
+from kubernetes.client.models.v1_glusterfs_volume_source import V1GlusterfsVolumeSource
 from kubernetes.client.models.v1_persistent_volume_claim_spec import V1PersistentVolumeClaimSpec
 from kubernetes.client.models.v1_label_selector import V1LabelSelector
 
 
-
-
 class Vol:
-    def __init__(self, nameapp, deploy, label):
+    def __init__(self):
         self.namespace = 'test-project'
         self.apiver = 'v1'
         config.load_kube_config()
-        self.k1 = kubernetes.client.CoreV1Api()
-        self.idname = nameapp + "-" + deploy
-        self.label = label
+        kcfg = kubernetes.config.new_client_from_config()
+        self.k1 = kubernetes.client.CoreV1Api(kcfg) 
 
-    def createvolume(self):
-        vbody = kubernetes.client.V1PersistentVolume()  # V1PersistentVolume |
-        volmeta = V1ObjectMeta()                # to fill
-        volspec = V1PersistentVolumeSpec()      # to fill
-        nfsvol = V1NFSVolumeSource()
+    def createvolume(self, nameapp, deploy, datadir):
+        idname = nameapp + "-" + deploy
+        
+        vbody = kubernetes.client.V1PersistentVolume()
+        volmeta = V1ObjectMeta()
+        volspec = V1PersistentVolumeSpec()
+        gfs = V1GlusterfsVolumeSource()
         accessmode = ['ReadWriteMany']
 
-################################################# - V1ObjectMeta()
-        volmeta.labels = self.label
+        ################################################# - V1ObjectMeta()
+        volmeta.labels = {'label': idname}
         volmeta.namespace = self.namespace
-        volmeta.name = self.idname
+        volmeta.name = 'pv-test-' + idname
 
-################################################# - V1NFSVolumeSource() - TO CHANGE!!!!!!!!!!!
-        nfsvol.path = '/DATA'
-        nfsvol.server = '127.0.0.1'
+        ################################################# - gfs
+        gfs.endpoints = 'pv-test-' + idname
+        gfs.path = datadir
+        gfs.server = nameapp + "-" + deploy
 
-################################################# - V1PersistentVolumeSpec()
+        ################################################# - V1PersistentVolumeSpec()
         volspec.access_modes = accessmode
-        volspec.capacity = {'1', 'GB'}
-#       volspec.mount_options = []
-        volspec.nfs = nfsvol
+        volspec.capacity = {'storage': '1Gi'}
+        volspec.glusterfs = gfs
         volspec.persistent_volume_reclaim_policy = 'Recycle'
-
+        volspec.storage_class_name = 'glusterfs-storage'
 
         vbody.api_version = self.apiver
         vbody.kind = 'PersistentVolume'
-        vbody.metadata = volmeta #######to fill
+        vbody.metadata = volmeta
         vbody.spec = volspec
 
         try:
@@ -60,7 +59,10 @@ class Vol:
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_persistent_volume: %s\n" % e)
 
-    def pvc(self):
+    def pvc(self, nameapp, deploy):
+        idname = nameapp + "-" + deploy
+        volumename = 'pv-test-' + idname
+
         pvcb = kubernetes.client.V1PersistentVolumeClaim()  # V1PersistentVolumeClaim |
         pretty = 'true'
         accessmode = ['ReadWriteMany']
@@ -68,22 +70,26 @@ class Vol:
         pvcmeta = V1ObjectMeta()
         pvcspec = V1PersistentVolumeClaimSpec()
         selector = V1LabelSelector()
+        requirements = V1ResourceRequirements()
 
-##################################################pvcmeta
+        ##################################################pvcmeta
         pvcmeta.namespace = self.namespace
-        pvcmeta.name = self.idname
-        pvcmeta.labels = self.label
+        pvcmeta.name = volumename
+        pvcmeta.labels = {'label': idname}
 
+        ##################################################pvcspec
+        selector.match_label = {'label': idname}
 
-##################################################pvcspec
-        selector.match_label = self.idname
+        requirements.limits = {'storage': '1Gi'}
+        requirements.requests = {'storage': '1Gi'}
 
         pvcspec.access_modes = accessmode
         pvcspec.selector = selector
-        pvcspec.volume_name = self.idname
+        pvcspec.volume_name = volumename
+        pvcspec.storage_class_name = 'glusterfs-storage'
+        pvcspec.resources = requirements
 
-
-##################################################pvcbody
+        ##################################################pvcbody
         pvcb.api_version = 'v1'
         pvcb.kind = 'PersistentVolumeClaim'
         pvcb.metadata = pvcmeta
@@ -92,5 +98,6 @@ class Vol:
         try:
             api_response = self.k1.create_namespaced_persistent_volume_claim(self.namespace, pvcb, pretty=pretty)
             pprint(api_response)
+            return volumename
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespaced_persistent_volume_claim: %s\n" % e)

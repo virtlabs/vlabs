@@ -30,6 +30,9 @@ marketplace:
                 type: 'route'
                 service: 'moodle'
                 port: 'moodle'
+            volumes:
+                persistentvolumeclaim: 'yes'
+                datadir: '/data'
 
           - nameservice: 'mysql'
             ports:
@@ -50,10 +53,13 @@ marketplace:
               - name: 'MYSQL_PASSWORD'
                 type: 'input'
                 description: 'db pwd'
+            volumes:
+                persistentvolumeclaim: 'yes'
+                datadir: '/data'
 
       - name: 'python'
         services:
-          - nameservice: 'psiaboxname'
+          - nameservice: 'psiabox'
             ports:
               - port: 'psiabox'
                 tcp: 4200
@@ -66,6 +72,9 @@ marketplace:
               - name: 'SX_P'
                 type: 'input'
                 description: 'password'
+            volumes:
+                persistentvolumeclaim: 'yes'
+                datadir: '/data'
 
       - name: 'vnccentos'
         services:
@@ -82,6 +91,9 @@ marketplace:
               - name: 'VNC_PWD'
                 type: 'input'
                 description: 'password'
+            volumes:
+                persistentvolumeclaim: 'yes'
+                datadir: '/data'
 
       - name: 'owncloud'
         services:
@@ -112,6 +124,9 @@ marketplace:
                 type: 'route'
                 service: 'moodle'
                 port: 'moodle'
+            volumes:
+                persistentvolumeclaim: 'yes'
+                datadir: '/data/'
 
 
           - nameservice: 'mysql'
@@ -133,4 +148,7 @@ marketplace:
               - name: 'MYSQL_PASSWORD'
                 type: 'input'
                 description: 'db pwd'
+            volumes:
+                persistentvolumeclaim: 'yes'
+                datadir: '/data'
 

@@ -33,6 +33,7 @@ class VlabsForm(forms.Form):
             self.fields[k] = forms.CharField(label=inputvar[k])
         self.fields['nameoftheapp'] = forms.CharField(label='name of the app')
         self.fields['appindex'] = forms.CharField(widget=forms.HiddenInput(), label='appindex', initial=c)
+        self.fields['pvc'] = forms.BooleanField(label='PVC', required=False, initial=False)
 
     def deleteapp(self):
         APP_SEL = ()

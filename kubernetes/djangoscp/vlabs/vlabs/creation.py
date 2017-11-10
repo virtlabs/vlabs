@@ -1,5 +1,7 @@
 from kubernetes import config as kconf, client
+from kubernetes.client import V1PersistentVolumeClaimVolumeSource, V1GlusterfsVolumeSource, V1VolumeMount
 from kubernetes.client.models.v1_object_meta import V1ObjectMeta
+from kubernetes.client.models.v1_volume import V1Volume
 import openshift.client.models
 import kubernetes.client.models
 import openshift.client
@@ -15,7 +17,7 @@ class Provision:
         self.o1 = openshift.client.OapiApi(ocfg)
         self.k1 = kubernetes.client.CoreV1Api(kcfg)
 
-    def createsvc(self, deploy, port, imagename, namespace, envvar, nameapp, service):
+    def createsvc(self, deploy, port, imagename, namespace, envvar, nameapp, service, pvc, volumename, datadir):
         bservice = client.V1Service()
         smeta = V1ObjectMeta()
         dcmeta = V1ObjectMeta()
@@ -70,6 +72,13 @@ class Provision:
         container.image = imagename
         container.name = idname
         container.env = []
+        if pvc:
+            vm = V1VolumeMount()
+            vm.mount_path = datadir
+            vm.name = volumename
+            container.volume_mounts = [vm]
+        else:
+            pass
 
         for key in envvar:
             v = client.V1EnvVar()
@@ -89,6 +98,22 @@ class Provision:
         pmt.name = idname
 
         podspec.containers = [container]
+        if pvc:
+            vol = V1Volume()
+            pvcname = V1PersistentVolumeClaimVolumeSource()
+            volgfs = V1GlusterfsVolumeSource()
+
+            pvcname.claim_name = volumename
+
+            volgfs.endpoints = volumename
+            volgfs.path = datadir
+
+            #vol.glusterfs = volgfs
+            vol.name = volumename
+            vol.persistent_volume_claim = pvcname
+            podspec.volumes = [vol]
+        else:
+            pass
 
         podtemp.metadata = pmt
         podtemp.spec = podspec
@@ -125,7 +150,7 @@ class Provision:
         routeto.name = idname
         routeto.weight = 100
 
-        routespec.host = idname + '.web.rmlab.infn.it'
+        routespec.host = idname + '.web.roma2.infn.it'
         routespec.port = routeport
         routespec.to = routeto
 
