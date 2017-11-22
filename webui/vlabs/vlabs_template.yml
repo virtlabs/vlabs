@@ -57,12 +57,7 @@ marketplace:
                 route: 'yes'
             imagename: 'virtuallabs/psiabox'
             env:
-              - name: 'SX_U'
-                value: $input
-                description: 'username'
-              - name: 'SX_P'
-                value: $input
-                description: 'password'
+
             volumes:
                 persistentvolumeclaim: 'yes'
                 datadir: '/data'
@@ -269,3 +264,4 @@ marketplace:
             volumes:
                 persistentvolumeclaim: 'yes'
                 datadir: '/data'
+

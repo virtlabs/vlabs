@@ -53,6 +53,7 @@ class Config:
         varuser = []
         vardesc = []
         q = int(index)
+        D = {}
         try:
             for j in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
                 for i in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'])):
@@ -60,14 +61,11 @@ class Config:
                         varuser.append(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name'])
                         vardesc.append(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['description'])
             D = dict(zip(varuser, vardesc))
-            D['appindex'] = q
-            print("VLABS.CONFIG.GETENV")
-            print(D)
-            return D
 
         except:
             print("app non esistente")
-
+        D['appindex'] = q
+        return D
 
 class AppManager:
     def __init__(self, namespace):

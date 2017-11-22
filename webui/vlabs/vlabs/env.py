@@ -37,14 +37,15 @@ class Var:
             svc = self.ysrvc['marketplace']['apps'][q]['services'][j]['nameservice']
             #idname = str(inputvar['nameoftheapp']) + '-' + svc
             var[app][svc] = {}
-            for i in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'])):
-                var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['value']
-                if "$input" in var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']]:
-                    inp = str(var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']])
-                    inp2 = inp.replace("$input", inputvar[self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']])
-                    var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = inp2
-                else:
-                    pass
+            if self.ysrvc['marketplace']['apps'][q]['services'][j]['env']:
+                for i in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'])):
+                    var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['value']
+                    if "$input" in var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']]:
+                        inp = str(var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']])
+                        inp2 = inp.replace("$input", inputvar[self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']])
+                        var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = inp2
+                    else:
+                        pass
 
         ev = ('$service', '$route', '$variable')
         for k in var[app]:
@@ -82,6 +83,8 @@ class Var:
             imagename = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['imagename']
             port = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['ports']
             envvar = var[nameapp][deploy]
+            print('ENVVAR-----------------')
+            print(envvar)
             psvc = Provision()
 
             if pvc:

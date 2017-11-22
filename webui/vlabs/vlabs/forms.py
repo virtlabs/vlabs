@@ -26,7 +26,7 @@ class VlabsForm(forms.Form):
     def createenv(self, inputvar):
         print(inputvar)
         c = inputvar['appindex']
-        del inputvar['appindex']
+        #del inputvar['appindex']
         for k in inputvar.keys():
             print(k)
             print(inputvar[k])
