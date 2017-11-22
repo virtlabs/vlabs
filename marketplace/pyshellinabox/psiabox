@@ -1,0 +1,26 @@
+FROM centos
+
+LABEL Description="test-image-for-learning_Python compiler and shell in a box"
+
+RUN yum clean all
+#####yum update and Install gcc wget make
+RUN yum update -y \
+        && yum install -y epel-release gcc wget make
+
+#####Install and compile Python2.7
+RUN yum install -y python
+
+#####Install shell in a box
+RUN yum install -y shellinabox
+
+#####Install emacs and vim
+RUN yum install -y emacs vim
+
+#####Install git
+RUN yum install -y git-all
+
+EXPOSE 4200
+
+ADD assets/entrypoint.sh ./
+
+ENTRYPOINT sh ./entrypoint.sh

@@ -11,7 +11,6 @@ from kubernetes.client.rest import ApiException
 
 class Provision:
     def __init__(self):
-        #config.load_kube_config()
         kcfg = kconf.new_client_from_config()
         ocfg = oconf.new_client_from_config()
         self.o1 = openshift.client.OapiApi(ocfg)
@@ -48,8 +47,8 @@ class Provision:
             p.target_port = "{port}-{tcp}".format(**port[l])
             sspec.ports.append(p)
             if port[l]['route'] == 'yes':
-                self.createroute(p.target_port, idname, namespace, service, nameapp)
-                continue
+                self.createroute(p.target_port, idname, namespace, service, nameapp, l)
+
 
         bservice.api_version = 'v1'
         bservice.kind = 'Service'
@@ -138,7 +137,7 @@ class Provision:
         except ApiException as e:
             print("Exception when calling OapiApi->create_dc: %s\n" % e)
 
-    def createroute(self, target, idname, namespace, service, nameapp):
+    def createroute(self, target, idname, namespace, service, nameapp, l):
         rbody = openshift.client.V1Route()
         routemeta = V1ObjectMeta()
         routespec = openshift.client.V1RouteSpec()
@@ -150,12 +149,12 @@ class Provision:
         routeto.name = idname
         routeto.weight = 100
 
-        routespec.host = idname + '.web.roma2.infn.it'
+        routespec.host = idname + '-' + str(l) + '.web.roma2.infn.it'
         routespec.port = routeport
         routespec.to = routeto
 
         routemeta.labels = {"label": idname, "bundle": service + "-" + nameapp}
-        routemeta.name = idname
+        routemeta.name = idname + '-' + str(l)
         routemeta.namespace = namespace
 
         rbody.api_version = 'v1'

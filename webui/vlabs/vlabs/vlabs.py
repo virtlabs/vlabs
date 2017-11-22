@@ -56,11 +56,13 @@ class Config:
         try:
             for j in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
                 for i in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'])):
-                    if self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['type'] == 'input':
+                    if '$input' in self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['value']:
                         varuser.append(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name'])
                         vardesc.append(self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['description'])
             D = dict(zip(varuser, vardesc))
             D['appindex'] = q
+            print("VLABS.CONFIG.GETENV")
+            print(D)
             return D
 
         except:
@@ -83,7 +85,10 @@ class AppManager:
             y = len(itemslist)
             name = []
             for x in range(0, y):
-                name.append(itemslist[x].metadata.name)
+                if 'gluster.kubernetes.io/provisioned-for-pvc' in itemslist[x].metadata.labels:
+                    pass
+                else:
+                    name.append(itemslist[x].metadata.name)
             return name
 
         except ApiException as e:
@@ -259,7 +264,7 @@ class AppManager:
             sel = api_response.metadata.labels
             if 'bundle' in sel:
                 selector = 'bundle=' + sel['bundle']
-            else:
+            elif 'app' in sel:
                 selector = 'app=' + sel['app']
             print(selector)
             return selector

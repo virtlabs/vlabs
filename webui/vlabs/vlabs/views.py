@@ -6,9 +6,10 @@ from pprint import pprint
 from env import Var
 import re
 
+namespace = 'test-project'
 
 def index(request):
-    getrun = AppManager('test-project')
+    getrun = AppManager(namespace)
     name = getrun.getrunning()
     rtv2 = []
     timestatus = []
@@ -52,14 +53,14 @@ def get_app(request):
 def postcreation(request):
     nome = request.POST.dict()
     del nome['csrfmiddlewaretoken']
-    e = Var()
+    e = Var(namespace)
     print(nome)
     e.buildvar(nome)
     return render(request, 'postcreate.html')
 
 
 def to_del(request):
-    getrun = AppManager('test-project')
+    getrun = AppManager(namespace)
     name = getrun.getrunning()
 
     pprint(request)
@@ -72,7 +73,7 @@ def to_del(request):
 
 def delend(request):
     delradio = request.POST.get('run')
-    getrun = AppManager('test-project')
+    getrun = AppManager(namespace)
     name = getrun.getrunning()
     print("nome dell'applicazione da cancellare" + name[int(delradio)])
     getrun.delete(name[int(delradio)])
@@ -80,7 +81,7 @@ def delend(request):
 
 
 def envsvc(request):
-    getrun = AppManager('test-project')
+    getrun = AppManager(namespace)
     if request.method == 'GET':
         svcsel = request.GET.get('service')
         svc = getrun.listsvc(svcsel)
@@ -89,7 +90,7 @@ def envsvc(request):
 
 
 def delsvc(request):
-    getrun = AppManager('test-project')
+    getrun = AppManager(namespace)
     dsvc = request.GET.get('service')
     getrun.delete(dsvc)
     return render(request, 'postdel.html')
@@ -97,7 +98,7 @@ def delsvc(request):
 
 
 def test(request):
-    getrun2 = AppManager('test-project')
+    getrun2 = AppManager(namespace)
     rtv2 = getrun2.readroute('root1')
     return render(
         request,
