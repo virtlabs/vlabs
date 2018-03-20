@@ -11,6 +11,7 @@ $CFG->dbname    = $DB_NAME;
 $CFG->dbuser    = $DB_USER;
 $CFG->dbpass    = $DB_PASSWD;
 $CFG->prefix    = 'mdl_';
+$CFG->sslproxy=true;
 $CFG->dboptions = array (
   'dbpersist' => 0,
   'dbport' => '',
