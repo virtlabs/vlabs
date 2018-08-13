@@ -5,6 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <title>CreaAPP</title>
+
+
 </head>
 <body>
 <!--
@@ -14,11 +16,8 @@ variabili servizio
     <div class="form">
        {% csrf_token %}
        {{ form.as_p }}
-
     </div>
-
     <input type="submit" value="Create App" />
-
 </form>
 -->
 <div class="well bs-component">
@@ -30,7 +29,6 @@ variabili servizio
       <div class="col-lg-10">
           {% csrf_token %}
           {{ form.as_p }}
-
 
         <input type="submit" value="Create App" class="btn btn-primary"/>
       </div>

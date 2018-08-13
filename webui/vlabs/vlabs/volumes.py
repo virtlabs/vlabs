@@ -15,13 +15,14 @@ from kubernetes.client.models.v1_label_selector import V1LabelSelector
 
 
 class Vol:
-    def __init__(self):
-        self.namespace = 'test-project'
+    def __init__(self, user, selectedproject):
+        cfg = '/root/.kube/' + user + '.config'
+        self.namespace = selectedproject
         self.apiver = 'v1'
-        config.load_kube_config()
-        kcfg = kubernetes.config.new_client_from_config()
-        self.k1 = kubernetes.client.CoreV1Api(kcfg) 
+        kcfg = kubernetes.config.new_client_from_config(cfg)
+        self.k1 = kubernetes.client.CoreV1Api(kcfg)
 
+    # non usata, si pu(o con l'accento) cancellare
     def createvolume(self, nameapp, deploy, datadir):
         idname = nameapp + "-" + deploy
         
@@ -34,10 +35,10 @@ class Vol:
         ################################################# - V1ObjectMeta()
         volmeta.labels = {'label': idname}
         volmeta.namespace = self.namespace
-        volmeta.name = 'pv-test-' + idname
+        volmeta.name = 'pv-' + idname
 
         ################################################# - gfs
-        gfs.endpoints = 'pv-test-' + idname
+        gfs.endpoints = 'pv-' + idname
         gfs.path = datadir
         gfs.server = nameapp + "-" + deploy
 
@@ -59,9 +60,10 @@ class Vol:
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_persistent_volume: %s\n" % e)
 
-    def pvc(self, nameapp, deploy):
+
+    def pvc(self, nameapp, deploy, volspace):
         idname = nameapp + "-" + deploy
-        volumename = 'pv-test-' + idname
+        volumename = 'pv-' + idname
 
         pvcb = kubernetes.client.V1PersistentVolumeClaim()  # V1PersistentVolumeClaim |
         pretty = 'true'
@@ -80,12 +82,12 @@ class Vol:
         ##################################################pvcspec
         selector.match_label = {'label': idname}
 
-        requirements.limits = {'storage': '1Gi'}
-        requirements.requests = {'storage': '1Gi'}
+        requirements.limits = {'storage': volspace}
+        requirements.requests = {'storage': volspace}
 
         pvcspec.access_modes = accessmode
-        pvcspec.selector = selector
-        pvcspec.volume_name = volumename
+        #pvcspec.selector = selector
+        #pvcspec.volume_name = volumename
         pvcspec.storage_class_name = 'glusterfs-storage'
         pvcspec.resources = requirements
 

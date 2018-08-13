@@ -3,14 +3,22 @@ from vlabs import AppManager
 from creation import Provision
 from volumes import Vol
 import re
+import string
+import random
 
 
 class Var:
-    def __init__(self, namespace):
+    def __init__(self, namespace, user):
         self.stream = file('vlabs_template.yml', 'r')
         self.ysrvc = yaml.load(self.stream)
         self.domain = str(self.ysrvc['domain'])
         self.namespace = namespace
+        self.user = user
+
+    def randompassword(self, pwdlen):
+        password_charset = string.ascii_letters + string.digits
+        rndpwd = ''.join([random.SystemRandom().choice(password_charset) for _ in xrange(pwdlen)])
+        return rndpwd
 
     def envregex(self, total):
         print('ENVREGEX-total')
@@ -24,7 +32,7 @@ class Var:
             pvc = True
         else:
             pvc = False
-
+        volspace = inputvar['space'] + "Gi"
         var = {}
         q = int(inputvar['appindex'])
         app = str(inputvar['nameoftheapp'])
@@ -44,6 +52,11 @@ class Var:
                         inp = str(var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']])
                         inp2 = inp.replace("$input", inputvar[self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']])
                         var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = inp2
+                    elif "$random" in var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']]:
+                        inp = str(var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']])
+                        rndpwd = self.randompassword(12)
+                        rndpwd2 = inp.replace("$random", rndpwd)
+                        var[app][svc][self.ysrvc['marketplace']['apps'][q]['services'][j]['env'][i]['name']] = rndpwd2
                     else:
                         pass
 
@@ -62,7 +75,7 @@ class Var:
                                     for portsarray in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][p]['ports'])):
                                         if self.ysrvc['marketplace']['apps'][q]['services'][p]['ports'][portsarray]['port'] == group[g][2].split(":")[1]:
                                             idname = str(app + "-" + self.ysrvc['marketplace']['apps'][q]['services'][p]['nameservice'])
-                                            repl = var[app][k][l].replace(str(group[g][0]), "http://" + idname + '-' + str(portsarray) + str(self.ysrvc['domain']))
+                                            repl = var[app][k][l].replace(str(group[g][0]), "https://" + idname + '-' + str(portsarray) + str(self.ysrvc['domain']))
                                             var[app][k][l] = repl
                         if group[g][1] == '$variable':
                             rightvar = var[app][group[g][2].split(":")[0]][group[g][2].split(":")[1]]
@@ -70,10 +83,10 @@ class Var:
                             var[app][k][l] = repl
             print(var[app][k])
 
-        self.create(q, app, var, pvc)
+        self.create(q, app, var, volspace, pvc)
 
-    def create(self, app_index, nameapp, var, pvc=None):
-        pv = Vol()
+    def create(self, app_index, nameapp, var, volspace, pvc=None):
+        pv = Vol(self.user, self.namespace)
         volumename = None
         datadir = None
         # app_index = next(index for (index, d) in enumerate(self.ysrvc['marketplace']['apps']) if d["name"] == app)
@@ -85,13 +98,13 @@ class Var:
             envvar = var[nameapp][deploy]
             print('ENVVAR-----------------')
             print(envvar)
-            psvc = Provision()
+            psvc = Provision(self.user)
 
             if pvc:
                 if self.ysrvc['marketplace']['apps'][app_index]['services'][j]['volumes']['persistentvolumeclaim'] == 'yes':
                     datadir = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['volumes']['datadir']
-                    pv.createvolume(nameapp, deploy, datadir)
-                    volumename = pv.pvc(nameapp, deploy)
+                    #pv.createvolume(nameapp, deploy, datadir)
+                    volumename = pv.pvc(nameapp, deploy, volspace)
                 else:
                     pass
             else:

@@ -10,9 +10,10 @@ from kubernetes.client.rest import ApiException
 
 
 class Provision:
-    def __init__(self):
-        kcfg = kconf.new_client_from_config()
-        ocfg = oconf.new_client_from_config()
+    def __init__(self, user):
+        cfg = '/root/.kube/' + user + '.config'
+        kcfg = kconf.new_client_from_config(cfg)
+        ocfg = oconf.new_client_from_config(cfg)
         self.o1 = openshift.client.OapiApi(ocfg)
         self.k1 = kubernetes.client.CoreV1Api(kcfg)
 
@@ -143,15 +144,20 @@ class Provision:
         routespec = openshift.client.V1RouteSpec()
         routeport = openshift.client.V1RoutePort()
         routeto = openshift.client.V1RouteTargetReference()
+        secureroute = openshift.client.V1TLSConfig()
 
         routeport.target_port = target
         routeto.kind = 'Service'
         routeto.name = idname
         routeto.weight = 100
 
-        routespec.host = idname + '-' + str(l) + '.web.roma2.infn.it'
+        secureroute.termination = 'Edge'
+        secureroute.insecure_edge_termination_policy = 'Redirect'
+
+        routespec.host = idname + '-' + str(l) + '.#######'
         routespec.port = routeport
         routespec.to = routeto
+        routespec.tls = secureroute
 
         routemeta.labels = {"label": idname, "bundle": service + "-" + nameapp}
         routemeta.name = idname + '-' + str(l)

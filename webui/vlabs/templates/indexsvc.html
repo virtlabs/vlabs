@@ -1,0 +1,130 @@
+{% extends "indextemplate.html" %}
+{% block custom-wrapper %}
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">Running Services</h1>
+                </div>
+
+            </div>
+
+
+<div class="col">
+<div class="col-lg-8"><a href="/marketplace/" class="btn btn-primary">Add Service</a></div>
+
+    <div class="container-fluid" id="svcs_table">
+        {% for k,v in dictbundle.items %}
+        {% cycle '<div class="row">'  '' %}
+            <div class="col-lg-8">
+
+                <div class="panel panel-default">
+                    <div class="panel-heading"><a class="btn-link" href="/service/?service={{v.values.0.bundlename}}">{{k}}</a></div>
+                    <div class="col-sm-8">
+                         {% if v.values.0.route %}
+                         {% for j in v.values.0.route %}
+                             <a class="btn-link" href="http://{{ j }}">{{j}}<br></a>
+                         {% endfor %}
+                         {% else %}
+                             No routes
+                         {% endif %}
+                    </div>
+                    <div>{{v.values.0.timestamp}}</div>
+                         <div class="panel-body">
+                             <div id="morris-donut-chart{{forloop.counter0}}"></div>
+                         </div>
+                </div>
+
+            </div>
+            {% cycle  '</div>' '' %}
+
+  {% endfor %}
+    </div>
+
+
+    <ul>
+    <p><a href="/marketplace/" class="btn btn-primary">Add Service</a></p>
+
+    </ul>
+</div>
+
+{% endblock %}
+{% block footer_scripts %}
+    {{ block.super }}
+    <script>
+
+p = {{ donutdict|safe }}
+console.log('p', p);
+var i;
+var  dc = [];
+        $(function()
+          {
+            for (i = 0; i < p.length; i++)
+              {
+                console.log(p[i])
+                chart = p[i]
+
+                 dc[i] = Morris.Donut({
+                    element: chart["element"],
+                    data: chart["data"],
+                    resize: false,
+                    colors: chart["colors"],
+                    animation: false
+                    })
+              };
+          }
+        );
+
+function update()
+{
+$.ajax({
+        url : '/svcupdate/',
+        type: "POST",
+        data: {  csrfmiddlewaretoken: "{{ csrf_token }}" },
+        success: function(data)
+        {
+            var p1 = JSON.parse(data)
+            console.log('p1',p1)
+
+            for (i = 0; i < p1.length; i++) {
+                chart1 = p1[i]
+                dc[i].options["colors"] = chart1["colors"];
+                dc[i].setData(chart1["data"]);
+            }
+        }
+      }).fail(function()
+                {
+                console.log("failed")
+                }
+            );
+}
+setInterval(update, 2000);
+
+
+function postdata(tenant)
+{
+                console.log(2222);
+
+    $.ajax({
+            "type": "POST",
+            "url": "/indexsvc/",
+            "data": {csrfmiddlewaretoken: "{{ csrf_token }}", 'prj': tenant},
+            "success": function(result) {
+                console.log(1111);
+                location.reload(true);
+            },
+            "error": function(jqXHR, textStatus, errorThrown) {
+                console.log(3333);
+                console.log(jqXHR);
+                console.log(textStatus);
+                console.log(errorThrown);
+            },
+            "complete": function(result) {
+                console.log(4444);
+            },
+        });
+}
+
+
+    </script>
+
+
+{% endblock %}

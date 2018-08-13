@@ -22,7 +22,10 @@ SECRET_KEY = '5h=su1e35!!3l@)cl579z+!@c=o9*o3+^-810y(j%nq6^b3-k3'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    'vlabs.#####',
+    'vlabs01######,]
 
 
 # Application definition
@@ -34,8 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'vlabs',
     'bootstrap_themes',
     'bootstrap4',
+    'bootstrap3',
 ]
 
 MIDDLEWARE = [
@@ -112,8 +117,13 @@ USE_L10N = True
 
 USE_TZ = True
 
-
+USE_DJANGO_JQUERY = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
+SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = (
+    os.path.join(BASE_DIR, 'static'),
+)
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
