@@ -1,0 +1,30 @@
+<div class="container-fluid" id="svcs_table">
+        {% for k,v in dictbundle.items %}
+        {% cycle '<div class="row">'  '' %}
+            <div class="col-lg-8">
+
+                <div class="panel panel-default">
+                    <div class="panel-heading"><a class="btn-link" href="/service/?service={{v.values.0.bundlename}}">{{k}}</a></div>
+                    <div class="col-sm-8">
+                         {% if v.values.0.route %}
+                         {% for j in v.values.0.route %}
+                             <a class="btn-link" href="http://{{ j }}">{{j}}<br></a>
+                         {% endfor %}
+                         {% else %}
+                             No routes
+                         {% endif %}
+                    </div>
+                    <div>{{v.values.0.timestamp}}</div>
+                         <div class="panel-body">
+                             <div id="morris-donut-chart{{forloop.counter0}}"></div>
+                         </div>
+                </div>
+
+            </div>
+            {% cycle  '</div>' '' %}
+
+  {% endfor %}
+    </div>
+<script>
+        {{ donutdict|safe }}
+</script>

@@ -1,0 +1,481 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>V-Labs Admin Page</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{% static 'vendor/metisMenu/metisMenu.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'dist/css/sb-admin-2.css' %}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="{% static 'vendor/morrisjs/morris.css' %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+</head>
+<body>
+
+    <div id="wrapper">
+
+        <!-- Navigation -->
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="index.html">V-Labs admin page</a>
+            </div>
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        <li class="sidebar-search">
+                            <div class="input-group custom-search-form">
+                                <input type="text" class="form-control" placeholder="Search...">
+                                <span class="input-group-btn">
+                                <button class="btn btn-default" type="button">
+                                    <i class="fa fa-search"></i>
+                                </button>
+                            </span>
+                            </div>
+                            <!-- /input-group -->
+                        </li>
+                        <li>
+                            <a href="/index"><i class="fa fa-dashboard fa-fw"></i> Dashboard</a>
+                        </li>
+
+                        <li>
+                            <a href="#"><i class="fa fa-wrench fa-fw"></i> Namespaces<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                {% for k in prj %}
+                                {% cycle '<li>'  '' %}
+                                <li>
+                                    <a href="/namespace/?namespace={{ k }}">{{ k }}</a>
+                                {% cycle  '</li>' '' %}
+                                {% endfor %}
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+                        <li>
+                            <a href="#"><i class="fa fa-user fa-fw"></i> Users<span class="fa arrow"></span></a>
+                            <ul class="nav nav-second-level">
+                                <li><a href="/newuser">Nuovo Utente</a></li>
+                                {% for k in usrschart %}
+                                {% cycle '<li>'  '' %}
+                                <li>
+                                    <a href="/user/?user={{ k.name }}">{{ k.name }}</a>
+                                {% cycle  '</li>' '' %}
+                                {% endfor %}
+
+                                <li>
+                                    <a href="#">Third Level <span class="fa arrow"></span></a>
+                                    <ul class="nav nav-third-level">
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                        <li>
+                                            <a href="#">Third Level Item</a>
+                                        </li>
+                                    </ul>
+                                    <!-- /.nav-third-level -->
+                                </li>
+                            </ul>
+                            <!-- /.nav-second-level -->
+                        </li>
+
+                    </ul>
+                </div>
+                <!-- /.sidebar-collapse -->
+            </div>
+            <!-- /.navbar-static-side -->
+        </nav>
+
+<div id="page-wrapper">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">V-LABS</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+
+     <div class="row">
+           <!--     <div class="col-lg-6"> -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            {{ namespace|upper }} Services
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Full Name</th>
+                                            <th>Replicas</th>
+                                            <th>Available Replicas</th>
+                                            <th>Status</th>
+                                            <th>Last Update</th>
+                                            <th>Last Message</th>
+                                            <th>Set new number of replicas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for k in nssvcs %}
+                                        {% cycle '<tr>' '' %}
+                                        <td>{{ forloop.counter0 }}</td>
+                                        <td>{{ k.name }}</td>
+                                        <td>{{ k.replicas }}</td>
+                                        <td>{{ k.status.available_replicas }}</td>
+                                        <td>{{ k.status.conditions.0.type }}</td>
+                                        <td>{{ k.status.conditions.0.last_update_time }}</td>
+                                        <td>{{ k.status.conditions.0.message }}</td>
+                                        <td><form action="/updaterc/" method="POST">
+                                            Quantity (between 1 and 3):
+                                            <input type="number" name="quantity" min="1" max="3">
+                                            <input type="hidden" name="name" value="{{k.name}}">
+                                            <input type="hidden" name="namespace" value="{{namespace}}">
+                                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                            <input type="submit" value="Set" class="btn btn-primary"/>
+                                        </form></td>
+                                        {% cycle  '</tr>' '' %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                <!--</div>
+                <!-- /.col-lg-6 -->
+
+            </div>
+
+       <!-- <div class="row">
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Namespace Limits
+                        </div>
+
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Limit Type</th>
+                                            <th>Cpu</th>
+                                            <th>Memory</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% if limits.default %}
+                                    <tr>
+                                        <td>Default</td>
+                                        <td>{{ limits.default.cpu }}</td>
+                                        <td>{{ limits.default.memory }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if limits.default_request %}
+                                    <tr>
+                                        <td>Default request</td>
+                                        <td>{{ limits.default_request.cpu }}</td>
+                                        <td>{{ limits.default_request.memory }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if limits.max %}
+                                    <tr>
+                                        <td>Max</td>
+                                        <td>{{ limits.max.cpu }}</td>
+                                        <td>{{ limits.max.memory }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if limits.max_limit_request_ratio %}
+                                    <tr>
+                                        <td>Default</td>
+                                        <td>{{ limits.max_limit_request_ratio.cpu }}</td>
+                                        <td>{{ limits.max_limit_request_ratio.memory }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if limits.min %}
+                                    <tr>
+                                        <td>Default</td>
+                                        <td>{{ limits.min.cpu }}</td>
+                                        <td>{{ limits.min.memory }}</td>
+                                    </tr>
+                                    {% endif %}
+
+                                        </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div> -->
+
+        <div class="row">
+           <!--     <div class="col-lg-6"> -->
+                    <div class="panel panel-default">
+                            <div class="panel-heading">
+                            <div class="col-sm-8">
+                            {{ namespace|upper }} Limits
+                            </div>
+                            <div>
+                                <form action="/limitsandquotas/" name="form" method="POST" class="form-horizontal">
+                                {% csrf_token %}
+                                {{ formlim }}
+                                <input type="submit" value="Set Limits and Quotas" class="btn btn-primary"/>
+                                </form>
+                            </div>
+
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+
+                                            <th>Name</th>
+
+                                            <th>Limits</th>
+
+                                        </tr>
+
+
+                                    </thead>
+
+                                    <tbody>
+                                    {% for i in limits %}
+                                        {% cycle '<tr>' '' %}
+                                        <td> {{ i.name }} </td>
+                                        <td>
+                                            <table class="table table-striped table-bordered table-hover">
+                                                <thead>
+                                                <th>Type</th>
+                                                <th>Spec</th>
+                                                </thead>
+                                                <tbody>
+                                                {% for k,v in i.spec.items %}
+                                                    {% cycle '<tr>' '' %}
+                                                        <td>{{k}}</td>
+                                                        <td>
+                                                            {{v}}
+                                                    {% cycle '</tr>' '' %}
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </td>
+
+
+                                        {% cycle  '</tr>' '' %}
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                <!--</div>
+                <!-- /.col-lg-6 -->
+
+            </div>
+        <div class="row">
+           <!--     <div class="col-lg-6"> -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <div class="col-sm-8">
+                            {{ namespace|upper }} Quotas
+                            </div>
+                            <div>
+                                <form action="/limitsandquotas/" name="form" method="POST" class="form-horizontal">
+                                {% csrf_token %}
+                                {{ formlim }}
+                                <input type="submit" value="Set Limits and Quotas" class="btn btn-primary"/>
+                                </form>
+                            </div>
+
+
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+
+                                            <th>Name</th>
+
+                                            <th>Spec</th>
+
+                                            <th>Used</th>
+
+                                        </tr>
+
+
+                                    </thead>
+
+                                    <tbody>
+                                    {% for i in quotas %}
+                                        {% cycle '<tr>' '' %}
+                                        <td> {{ i.metadata.name }} </td>
+                                        <td>
+                                            <table>
+                                                {% for k,v in i.spec.hard.items %}
+                                                    {% cycle '<tr>' '' %}
+                                                        <td>{{ k }}: {{ v }}</td>
+                                                    {% cycle '<tr>' '' %}
+                                                {% endfor %}
+                                            </table>
+                                        </td>
+                                        <td>
+                                            <table>
+                                                {% for k,v in i.status.used.items %}
+                                                    {% cycle '<tr>' '' %}
+                                                        <td>{{ k }}: {{ v }}</td>
+                                                    {% cycle '<tr>' '' %}
+                                                {% endfor %}
+                                            </table>
+                                        </td>
+                                        {% cycle  '</tr>' '' %}
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                <!--</div>
+                <!-- /.col-lg-6 -->
+
+            </div>
+
+    <div class="row">
+           <!--     <div class="col-lg-6"> -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            V-Labs Users
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Namespace</th>
+                                            <th>Usernames</th>
+                                            <th>Persistent Volume Claims</th>
+                                            <th>PVC Space</th>
+                                            <th>Persistent Volumes</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for k, v in dictnsusr.items %}
+                                        {% cycle '<tr>' '' %}
+                                        <td>{{forloop.counter0}}</td>
+                                        <td> {{ k }} </td>
+                                        <td> {{ v.Users }} </td>
+                                        <td> {{ v.Volumes.Name }} </td>
+                                        <td> {{ v.Volumes.Storage }} </td>
+                                        <td> {{ v.Volumes.PersistentVolume }} </td>
+
+                                        {% cycle  '</tr>' '' %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                <!--</div>
+                <!-- /.col-lg-6 -->
+
+            </div>
+
+             <div class="row">
+
+                <!-- /.col-lg-6 -->
+                <div class="col-lg-6">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            Users/projects
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div id="morris-donut-chart"></div>
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+<!-- jQuery -->
+    <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.min.js' %}"></script>
+
+    <!-- Metis Menu Plugin JavaScript -->
+    <script src="{% static 'vendor/metisMenu/metisMenu.min.js' %}"></script>
+
+    <!-- Morris Charts JavaScript -->
+    <script src="{% static 'vendor/raphael/raphael.min.js' %}"></script>
+    <script src="{% static 'vendor/morrisjs/morris.min.js' %}"></script>
+
+    <!-- Custom Theme JavaScript -->
+    <script src="{% static 'dist/js/sb-admin-2.js' %}"></script>
+
+
+</body>
+</html></html>
