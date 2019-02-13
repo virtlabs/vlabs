@@ -1,4 +1,0 @@
-Morris.Donut ( {'colors': ['#00ff00', '#00ff00'], 'data': [{'value': 1, 'label': 'testdoc-mysql'}, {'value': 1, 'label': 'testdoc-wordpress'}], 'resize': 'true', 'element': 'morris-donut-chart0'} ) ;
-Morris.Donut ( {'colors': ['#00ff00', '#00ff00'], 'data': [{'value': 1, 'label': 'azzope-mysql'}, {'value': 1, 'label': 'azzope-wordpress'}], 'resize': 'true', 'element': 'morris-donut-chart1'} ) ;
-Morris.Donut ( {'colors': ['#00ff00', '#00ff00'], 'data': [{'value': 1, 'label': 'forms-wordpress'}, {'value': 1, 'label': 'forms-mysql'}], 'resize': 'true', 'element': 'morris-donut-chart2'} ) ;
-Morris.Donut ( {'colors': ['#00ff00'], 'data': [{'value': 1, 'label': 'provapj-psiabox'}], 'resize': 'true', 'element': 'morris-donut-chart3'} ) 

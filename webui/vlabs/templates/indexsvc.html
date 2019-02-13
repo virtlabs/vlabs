@@ -2,11 +2,11 @@
 {% block custom-wrapper %}
             <div class="row">
                 <div class="col-lg-12">
-                    <h1 class="page-header">Running Services</h1>
+                    <h1 class="page-header">{{ actualprj | upper }}</h1>
+                    <h2>Running Services</h2>
                 </div>
 
             </div>
-
 
 <div class="col">
 <div class="col-lg-8"><a href="/marketplace/" class="btn btn-primary">Add Service</a></div>
@@ -40,10 +40,7 @@
     </div>
 
 
-    <ul>
-    <p><a href="/marketplace/" class="btn btn-primary">Add Service</a></p>
 
-    </ul>
 </div>
 
 {% endblock %}

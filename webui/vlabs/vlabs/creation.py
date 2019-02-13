@@ -7,6 +7,7 @@ import kubernetes.client.models
 import openshift.client
 from openshift import config as oconf
 from kubernetes.client.rest import ApiException
+import os, yaml
 
 
 class Provision:
@@ -16,6 +17,13 @@ class Provision:
         ocfg = oconf.new_client_from_config(cfg)
         self.o1 = openshift.client.OapiApi(ocfg)
         self.k1 = kubernetes.client.CoreV1Api(kcfg)
+        path = os.path.dirname(__file__)
+        stream = file((os.path.join(path, '../marketplace/vlabs_template.yml')), 'r')
+        ysrvc = yaml.load(stream)
+        if str(ysrvc['svcsdomain']).startswith('$'):
+            self.domain = os.getenv('SVCSDOMAIN')
+        else:
+            self.domain = ysrvc['svcsdomain']
 
     def createsvc(self, deploy, port, imagename, namespace, envvar, nameapp, service, pvc, volumename, datadir):
         bservice = client.V1Service()
@@ -154,7 +162,7 @@ class Provision:
         secureroute.termination = 'Edge'
         secureroute.insecure_edge_termination_policy = 'Redirect'
 
-        routespec.host = idname + '-' + str(l) + '.#######'
+        routespec.host = idname + '-' + str(l) + str(self.domain) ##'.web.roma2.infn.it'
         routespec.port = routeport
         routespec.to = routeto
         routespec.tls = secureroute

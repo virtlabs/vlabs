@@ -1,19 +1,32 @@
 import yaml
-from vlabs import AppManager
 from creation import Provision
 from volumes import Vol
-import re
+import re,os
 import string
 import random
 
 
 class Var:
     def __init__(self, namespace, user):
-        self.stream = file('vlabs_template.yml', 'r')
-        self.ysrvc = yaml.load(self.stream)
-        self.domain = str(self.ysrvc['domain'])
+        path = os.path.dirname(__file__)
+        stream = file((os.path.join(path, '../marketplace/vlabs_template.yml')), 'r')
+        self.ysrvc = yaml.load(stream)
+        if str(self.ysrvc['svcsdomain']).startswith('$'):
+            self.domain = os.getenv('SVCSDOMAIN')
+        else:
+            self.domain = self.ysrvc['svcsdomain']
         self.namespace = namespace
         self.user = user
+        custompath = os.path.join(path, "../marketplace/custom_marketplace/")
+        for f in sorted(os.listdir(custompath)):
+            if f.endswith(".yml"):
+                stream2 = file((os.path.join(custompath, f)), 'r')
+                ysrvc2 = yaml.load(stream2)
+                for i in ysrvc2:
+                    self.ysrvc['marketplace']['apps'].append(i)
+            else:
+                pass
+
 
     def randompassword(self, pwdlen):
         password_charset = string.ascii_letters + string.digits
@@ -21,8 +34,6 @@ class Var:
         return rndpwd
 
     def envregex(self, total):
-        print('ENVREGEX-total')
-        print(total)
         m = re.findall(r"((\$.*?)\[(.*?)\])", total)
         return m
 
@@ -37,9 +48,6 @@ class Var:
         q = int(inputvar['appindex'])
         app = str(inputvar['nameoftheapp'])
         var[app] = {}
-
-        print('INPUTVAR')
-        print(inputvar)
 
         for j in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'])):
             svc = self.ysrvc['marketplace']['apps'][q]['services'][j]['nameservice']
@@ -75,13 +83,13 @@ class Var:
                                     for portsarray in range(0, len(self.ysrvc['marketplace']['apps'][q]['services'][p]['ports'])):
                                         if self.ysrvc['marketplace']['apps'][q]['services'][p]['ports'][portsarray]['port'] == group[g][2].split(":")[1]:
                                             idname = str(app + "-" + self.ysrvc['marketplace']['apps'][q]['services'][p]['nameservice'])
-                                            repl = var[app][k][l].replace(str(group[g][0]), "https://" + idname + '-' + str(portsarray) + str(self.ysrvc['domain']))
+                                            repl = var[app][k][l].replace(str(group[g][0]), "https://" + idname + '-' + str(portsarray) + str(self.domain))
                                             var[app][k][l] = repl
                         if group[g][1] == '$variable':
                             rightvar = var[app][group[g][2].split(":")[0]][group[g][2].split(":")[1]]
                             repl = var[app][k][l].replace(group[g][0], rightvar)
                             var[app][k][l] = repl
-            print(var[app][k])
+            #print(var[app][k])
 
         self.create(q, app, var, volspace, pvc)
 
@@ -96,8 +104,6 @@ class Var:
             imagename = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['imagename']
             port = self.ysrvc['marketplace']['apps'][app_index]['services'][j]['ports']
             envvar = var[nameapp][deploy]
-            print('ENVVAR-----------------')
-            print(envvar)
             psvc = Provision(self.user)
 
             if pvc:

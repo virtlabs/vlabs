@@ -1,14 +1,94 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
-{{user}}
+{% extends "adminpage.html" %}
+{% block page-wrapper %}
 
-creation---da mettere nellapagina parent
-authz
-cancellazione
-</body>
-</html>
+<div class="row">
+           <!--     <div class="col-lg-6"> -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            User: {{ user|upper }}
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Namespace</th>
+                                            <th>Services</th>
+                                            <th>Delete Role Binding</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for key,values in nsperuser.items %}
+                                        {% cycle '<tr>' '' %}
+                                        <td>{{ forloop.counter0 }}</td>
+                                        <td>{{ key }}</td>
+                                        <td>{{ values }}</td>
+                                        <td><form action="/patchrolebindings/" method="POST">
+                                            <input type="hidden" name="namespace" value="{{ key }}">
+                                            <input type="hidden" name="user" value="{{user}}">
+                                            <input type="hidden" name="operation" value="del">
+                                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                            <input type="submit" value="Delete role" class="btn btn-primary"/>
+                                        </form></td>
+                                        {% cycle  '</tr>' '' %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                <!--</div>
+                <!-- /.col-lg-6 -->
+
+            </div>
+
+<div class="row">
+           <!--     <div class="col-lg-6"> -->
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            User: {{ user|upper }}
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div class="panel-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Namespace</th>
+                                            <th>Add Role Binding</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for p in newprj %}
+                                        {% cycle '<tr>' '' %}
+                                        <td>{{ forloop.counter0 }}</td>
+                                        <td>{{ p }}</td>
+                                        <td><form action="/patchrolebindings/" method="POST">
+                                            <input type="hidden" name="namespace" value="{{p}}">
+                                            <input type="hidden" name="user" value="{{user}}">
+                                            <input type="hidden" name="operation" value="add">
+                                            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                            <input type="submit" value="Add role" class="btn btn-primary"/>
+                                        </form></td>
+                                        {% cycle  '</tr>' '' %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <!-- /.table-responsive -->
+                        </div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                <!--</div>
+                <!-- /.col-lg-6 -->
+
+            </div>
+
+{% endblock %}

@@ -1,8 +1,7 @@
 from __future__ import print_function
-import time
 import kubernetes.client
 from kubernetes.client.rest import ApiException
-from pprint import pprint
+import logging
 from kubernetes import config, client
 from kubernetes.client.models.v1_object_meta import V1ObjectMeta
 import openshift.client.models
@@ -22,7 +21,7 @@ class Vol:
         kcfg = kubernetes.config.new_client_from_config(cfg)
         self.k1 = kubernetes.client.CoreV1Api(kcfg)
 
-    # non usata, si pu(o con l'accento) cancellare
+    # not used with glusterfs
     def createvolume(self, nameapp, deploy, datadir):
         idname = nameapp + "-" + deploy
         
@@ -56,7 +55,7 @@ class Vol:
 
         try:
             api_response = self.k1.create_persistent_volume(vbody, pretty='true')
-            pprint(api_response)
+            logging.info(api_response)
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_persistent_volume: %s\n" % e)
 
@@ -99,7 +98,7 @@ class Vol:
 
         try:
             api_response = self.k1.create_namespaced_persistent_volume_claim(self.namespace, pvcb, pretty=pretty)
-            pprint(api_response)
+            logging.info(api_response)
             return volumename
         except ApiException as e:
             print("Exception when calling CoreV1Api->create_namespaced_persistent_volume_claim: %s\n" % e)

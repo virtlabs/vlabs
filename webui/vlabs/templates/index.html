@@ -1,9 +1,80 @@
 {% load bootstrap_themes %}
 {% bootstrap_styles theme='cerulean' type='css' %}
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+    <meta charset="UTF-8">
+    <title>V-LABS</title>
+        <!-- Bootstrap Core CSS -->
+    <link href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- MetisMenu CSS -->
+    <link href="{% static 'vendor/metisMenu/metisMenu.min.css' %}" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="{% static 'dist/css/sb-admin-2.css' %}" rel="stylesheet">
+
+    <!-- Morris Charts CSS -->
+    <link href="{% static 'vendor/morrisjs/morris.css' %}" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="{% static 'vendor/font-awesome/css/font-awesome.min.css' %}" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>    <!--[if lt IE 9]>
+-->
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+</head>
+<body>
+<h1 class="text-center text-info">V-LABS</h1>
+    <div class="container">
+        <div class="row-lg">
+            <div class="col-md-4 col-md-offset-4">
+                <div class="login-panel panel panel-default">
+                    <div class="panel-heading">
+
+<img src="https://www.garr.it/it/chi-siamo/documenti/materiale-informativo/loghi/552-logo-garr-jpeg/file", style='height: 10%; width: 100%; object-fit: contain'/>
+
+                        <h3 class="text-center text-info">Login</h3>
+                    </div>
+
+
+                    <div class="panel-body">
+
+                        <form role="form" action="/auth/" name="form" method="POST" >
+                            {% csrf_token %}
+                            <fieldset>
+                                <div class="form-control"><label class="text-info">  Username  </label></div>
+                                <div class="form-group">
+
+                                    <br> {{form.username}} <br>
+                                </div>
+
+                                    <div class="form-control"><label class="text-info">  Password  </label></div>
+                                    <div class="form-group"><br>
+                                    {{form.password}}
+                                </div>
+
+                                <!-- Change this to a button or input when using this as a form -->
+                                <input type="submit" value="Submit" class="btn btn-info btn-md"/>
+                            </fieldset>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div></body>
+<!--
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
     <meta charset="UTF-8">
     <title>V-LABS</title>
 </head>
@@ -16,5 +87,9 @@
 {{ form.as_p }}
      <input type="submit" value="Submit"/>
 </form>
+
+
+
+
 </body>
 </html>

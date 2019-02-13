@@ -19,6 +19,7 @@ class ServiceView:
             chart['colors'] = []
             svcnum = 0
             for kk in dictbundle[k].keys():
+                #print(dictbundle)
                 status = dictbundle[k][kk]['status']
                 chart['data'].append({})
                 chart['data'][svcnum]['label'] = kk
@@ -37,7 +38,7 @@ class ServiceView:
         arprj = []
         i = 0
         for k in dictprj:
-            arprj.append({'y':k, 'a':len(dictprj[k])})
+            arprj.append({'y': k, 'a': len(dictprj[k])})
         return arprj
 
     def userschart(self, usersdict):
@@ -79,9 +80,17 @@ class ServiceView:
             for j in range(0, len(l[i].spec.limits)):
                 tempdict['spec'][l[i].spec.limits[j].type] = l[i].spec.limits[j]
             finallist.append(tempdict)
-        print("\n\n\n\n\n\n\nFINALLIST\n\n\n\n\n\n")
-        print(finallist)
         return finallist
+
+    def nsperuser(self, user, oldict):
+        newdict = {}
+        newdict[user] = {}
+        for key, value in oldict.items():
+            if value['Users']:
+                for i in range(0, len(value['Users'])):
+                    if value['Users'][i] == user:
+                        newdict[user][key] = []
+        return newdict
 
 
 class UpdateServices:
@@ -95,20 +104,15 @@ class UpdateServices:
         spec['spec']['template']['spec']['containers'][0]['env'] = []
         for k in upddict:
             spec['spec']['template']['spec']['containers'][0]['env'].append({'name': k, 'value': upddict[k]})
-        print(spec)
         return spec
 
     def quotaupdate(self, spec_hard=None):
-        #{'pods', 'requests.cpu', 'requests.memory', 'requests.ephemeral-storage', 'requests.storage', 'limits.cpu',
-        #     'limits.memory', 'limits.memory', 'limits.ephemeral-storage', 'configmaps', 'persistentvolumeclaims',
-        #     'replicationcontrollers', 'secrets', 'services'}
         a = {'pods': None, 'requests.cpu': None, 'requests.memory': None, 'requests.ephemeral-storage': None, 'requests.storage': None, 'limits.cpu': None,
              'limits.memory': None, 'limits.memory': None, 'limits.ephemeral-storage': None, 'configmaps': None, 'persistentvolumeclaims': None,
              'replicationcontrollers': None, 'secrets': None, 'services': None}
         if spec_hard:
             for k in spec_hard:
                 a[k] = spec_hard[k]
-        print(a)
         return a
 
 

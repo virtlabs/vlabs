@@ -4,11 +4,20 @@ from django.shortcuts import redirect
 import views
 from vlabs import Auth
 
-
-
+'''
 def userisauth(session_func):
     def _wrapped_session_func(request):
         if views.SessionDict.buildSessionDict()[request.session.session_key]:
+            return session_func(request)
+        else:
+            return redirect('index')
+
+    return _wrapped_session_func
+'''
+
+def userisauth(session_func):
+    def _wrapped_session_func(request):
+        if 'username' in request.session:
             return session_func(request)
         else:
             return redirect('index')

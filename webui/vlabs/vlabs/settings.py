@@ -17,15 +17,24 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.11/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '5h=su1e35!!3l@)cl579z+!@c=o9*o3+^-810y(j%nq6^b3-k3'
+#SECRET_KEY = '5h=su1e35!!3l@)cl579z+!@c=o9*o3+^-810y(j%nq6^b3-k3'
+
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', '5h=su1e35!!3l@)cl579z+!@c=o9*o3+^-810y(j%nq6^b3-k3')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+#DEBUG = True
+DEBUG = os.environ.get('DJANGO_DEBUG', False)
 
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', False)
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', False)
+if os.environ.get('SECURE_PROXY_SSL_H'):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+else:
+    SECURE_PROXY_SSL_HEADER = None
 ALLOWED_HOSTS = [
     'localhost',
-    'vlabs.#####',
-    'vlabs01######,]
+    os.getenv('VLROUTE'),
+    ]
 
 
 # Application definition

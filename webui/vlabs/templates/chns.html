@@ -54,7 +54,9 @@
 
 </head>
 <body>
+
     <h1>V-LABS</h1>
+    {% if initialprj %}
     <div class="row">
                 <div class="col-lg-12">
                     <h1 class="page-header">Hi {{ username }}! Choose a Project</h1>
@@ -74,6 +76,41 @@
                                 {% endfor %}
                             </ul>
     </div>
+    {% else %}
+    {% if form %}
+    <div class="row">
+                <div class="col-lg-12">
+                    <h2 class="page-header">Hi {{ username }}! Please create your first namespace</h2>
+                </div>
+    </div>
+    <div>
+<form action="/nscreated/" name="form" method="POST" class="form-horizontal">
+    <fieldset>
+    <legend><h3> Name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc')</h3></legend>
+        <div class="form-group">
+
+      <div class="col-lg-10">
+          <input id="first" name="first" type="hidden" value="true">
+          {% csrf_token %}
+          {{ form.as_p }}
+
+        <input type="submit" value="Create App" class="btn btn-primary"/>
+      </div>
+    </div>
+    </fieldset>
+    </form>
+    </div>
+
+    {% else %}
+
+    <div class="row">
+                <div class="col-lg-12">
+                    <h2 class="page-header">Hi {{ username }}! You are now authenticated. Please contact V-Labs administrator to request your project area</h2>
+                </div>
+
+    </div>
+    {% endif %}
+    {% endif %}
 </body>
 </html>
 

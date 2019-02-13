@@ -178,6 +178,7 @@
             "data": {"csrfmiddlewaretoken": "{{ csrf_token }}", "limit": nome, "ns": namespace, "newnamespace": newns},
             "success": function(result) {
                 console.log(1111);
+                window.location = "/namespace/"
             },
             "error": function(jqXHR, textStatus, errorThrown) {
                 console.log(3333);
@@ -202,6 +203,7 @@ function setq(nome, namespace, newns)
             "data": {"csrfmiddlewaretoken": "{{ csrf_token }}", "quota": nome, "ns": namespace, "newnamespace": newns},
             "success": function(result) {
                 console.log(1111);
+                window.location = "/namespace/"
             },
             "error": function(jqXHR, textStatus, errorThrown) {
                 console.log(3333);

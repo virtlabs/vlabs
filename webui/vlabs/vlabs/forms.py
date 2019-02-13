@@ -29,15 +29,11 @@ class VlabsForm(forms.Form):
         for j in range(0, len(a)):
             i.append(j)
         APP_SEL = zip(tuple(i), tuple(a))
-        print(APP_SEL)
         self.fields['app'] = forms.ChoiceField(widget=forms.RadioSelect, label='app', choices=APP_SEL)
 
     def createenv(self, inputvar):
-        print(inputvar)
         c = inputvar['appindex']
         for k in inputvar.keys():
-            print(k)
-            print(inputvar[k])
             self.fields[k] = forms.CharField(label=inputvar[k])
         self.fields['nameoftheapp'] = forms.CharField(label='name of the app')
         self.fields['appindex'] = forms.CharField(widget=forms.HiddenInput(), label='appindex', initial=c)
@@ -47,11 +43,9 @@ class VlabsForm(forms.Form):
     def deleteapp(self):
         i = []
         a = self.vlam.getrunning()
-        print(a)
         for j in range(0, len(a)):
             i.append(j)
         APP_SEL = zip(tuple(i), tuple(a))
-        print(APP_SEL)
         self.fields['run'] = forms.ChoiceField(widget=forms.RadioSelect, label='run', choices=APP_SEL)
 
     def chooseapp(self, value):
@@ -73,6 +67,17 @@ class VlabsForm(forms.Form):
     def updatelimits(self, vars):
         for i in range (0, len(vars)):
             self.fields[vars[i]['name']] = forms.BooleanField(label=vars[i]['name'], initial=False)
+
+
+    def createns(self):
+        #alphalower = RegexValidator(regex=r'^[a-z]*[a-z0-9\-\_]*[a-z]')
+        self.fields['namespacename'] = forms.CharField(label='Name', required=True)
+
+
+
+
+
+
 
 '''
         a = {'pods', 'requests.cpu', 'requests.memory', 'requests.ephemeral-storage', 'requests.storage', 'limits.cpu', 'limits.memory', 'limits.memory', 'limits.ephemeral-storage', 'configmaps', 'persistentvolumeclaims', 'replicationcontrollers', 'secrets', 'services'}

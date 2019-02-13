@@ -2,16 +2,11 @@ from django.http import HttpResponse, HttpRequest
 from vlabs import Config, AppManager, Auth
 from django.shortcuts import render, redirect
 from forms import VlabsForm
-from pprint import pprint
+#from pprint import pprint
 from env import Var
 from decorators import userisauth, userisadmin
 from models import ServiceView, UpdateServices
 from admin import Adminclass
-import ast
-from django.core import serializers
-import re
-import tempfile
-from collections import MutableMapping
 import json
 
 class SessionDict:
@@ -30,6 +25,38 @@ def index(request):
         request,
         'index.html', {'form': f})
 
+def authnauthz(request):
+    user = request.POST.dict()
+    username = user['username']
+    pwd = user['password']
+    if not request.session.session_key:
+        request.session.save()
+    session = request.session.session_key
+    qauth = Auth(session)
+    check = qauth.login(username, pwd)
+    if check == 0:
+        request.session['sessionid'] = request.session.session_key
+        request.session['username'] = username
+        return redirect("/chns/")
+    else:
+        return redirect("/")
+
+@userisauth
+def chns(request):
+    form = False
+    qauth = Auth(request.session.session_key)
+    prj = qauth.chooseprj()
+    if not prj:
+        getrun = AppManager(None, request.session.session_key)
+        if getrun.users():
+            form = VlabsForm()
+            form.createns()
+        else:
+            form = False
+    return render(
+        request,
+        'chns.html', {'initialprj': prj, 'username': request.session['username'], 'form': form})
+
 def cprj(request):
     user = request.POST.dict()
     username = user['username']
@@ -37,41 +64,43 @@ def cprj(request):
     if not request.session.session_key:
         request.session.save()
     session = request.session.session_key
-    print("CONTROLLO SESSION IN VIEW - INIZIO \n \n" + str(session) + "\n \n CONTROLLO SESSION IN VIEW - FINE")
     qauth = Auth(session)
     check = qauth.login(username, pwd)
+    form = False
     if check == 0:
         request.session['sessionid'] = request.session.session_key
         request.session['username'] = username
         prj = qauth.chooseprj()
+        if not prj:
+            getrun = AppManager(None, request.session.session_key)
+            if getrun.users():
+                form = VlabsForm()
+                form.createns()
+            else:
+                form = False #####crea pagina di prima creazione namespace, anche sulla stessa pagina. alla classe admin serve solo la sessione dell'admin
         return render(
             request,
-            'chns.html', {'initialprj': prj, 'username': username})
+            'chns.html', {'initialprj': prj, 'username': username, 'form': form})
     else:
         request.session.flush()
         return redirect('index')
 
-
+@userisauth
 def indexauth(request):
     if request.POST.dict():
         prj = request.POST.dict()
         request.session['project'] = prj
-        print("INDEXAUTH")
-        print(request.session['project'])
     else:
         prj = request.session['project']
-        print("INDEXAUTH-ELSE")
-        print(prj)
     request.session.save()
     qauth = Auth(request.session.session_key)
     prjtot = qauth.chooseprj()   ###progetti utilizzabili dall'utente
 
-    ##instanzio Appmanager
+    ##Appmanager
     SessionDict.buildSessionDict()[request.session.session_key] = AppManager(prj['prj'], request.session.session_key)
     getrun = SessionDict.buildSessionDict()[request.session.session_key]
-    #request.session['prj'] =  prj['prj']
     dictbundle = {}
-    ###running svcs con 'bundle' nelle label
+    ###running svcs, 'bundle' ->label
     name = getrun.getrunning('bundle')
     for k in name.keys():
         dictbundle[k] = {}
@@ -83,10 +112,6 @@ def indexauth(request):
             dictbundle[k][name[k][x]]['route'] = getrun.readroute(dictbundle[k][name[k][x]]['bundlename'])
     serviceview = ServiceView()
     donutdict = serviceview.dchart(dictbundle)
-    #print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDICTBUNDLE")
-    #print(dictbundle)
-    #print("\n\n\n\n\n\nDONUTDICT")
-    #print(donutdict)
     if getrun.users():
         admbtt = 1
     else:
@@ -94,7 +119,7 @@ def indexauth(request):
     return render(
         request,
         'indexsvc.html',
-        context={'dictbundle': dictbundle, 'donutdict': donutdict, 'prj': prjtot, 'admbtt': admbtt}
+        context={'dictbundle': dictbundle, 'donutdict': donutdict, 'prj': prjtot, 'admbtt': admbtt, 'actualprj': prj['prj']}
     )
 
 
@@ -114,13 +139,9 @@ def svcupdate(request):
                 dictbundle[k][name[k][x]]['route'] = getrun.readroute(dictbundle[k][name[k][x]]['bundlename'])
         serviceview = ServiceView()
         donutupdate = serviceview.dchart(dictbundle)
-        #print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDICTBUNDLE")
-        #print(dictbundle)
-        #print("\n\n\n\n\n\nDONUTDICT")
-        #print(donutupdate)
         return HttpResponse(content=json.dumps(donutupdate))
     else:
-        print ("ERROR")
+        logging.warning ("request not ajax - ERROR")
 
 
 @userisauth
@@ -140,8 +161,9 @@ def adminsvcs(request):
     activesvcs = serviceview.adminbarchart(dictprj)
     users = getrun.users('list')
     usrschart = serviceview.userschart(users)
-    #print(dictnsusr) ###dictnsusr = dizionario con namespaces e utenti associati e pv/pvc
     donutuser = []
+    adminclass = Adminclass(request.session.session_key)
+    nodescheck = adminclass.listnodes()
     for j in dictnsusr:
         donutuser.append({
             'label' : j,
@@ -150,13 +172,18 @@ def adminsvcs(request):
     return render(
         request,
         'adminsvcs.html',
-        context={'activesvcs': activesvcs, 'usrschart': usrschart, 'prj': prj, 'donutuser': donutuser, 'dictnsusr': dictnsusr})
+        context={'activesvcs': activesvcs, 'usrschart': usrschart, 'prj': prj, 'donutuser': donutuser, 'dictnsusr': dictnsusr, 'nodescheck': nodescheck})
 
 
 @userisauth
 @userisadmin
 def funcns(request):
-    namespace = request.GET.get('namespace')
+    if request.GET.get('namespace'):
+        namespace = request.GET.get('namespace')
+        request.session['project']['prj'] = namespace
+        request.session.save()
+    else:
+        namespace = request.session['project']['prj']
     adminclass = Adminclass(request.session.session_key)
     getrun = SessionDict.buildSessionDict()[request.session.session_key]
     serviceview = ServiceView()
@@ -164,21 +191,21 @@ def funcns(request):
     qauth = Auth(request.session.session_key)
     prj = qauth.chooseprj()
     users = getrun.users('list')
+    nsusers = serviceview.usersperns(getrun.rolebinding(namespace)) ####namespaced user
     #users list
     usrschart = serviceview.userschart(users)
     nssvcs = adminclass.readnsdc(namespace)
-    pprint(nssvcs) ###last status Check!
+    #pprint(nssvcs) ###last status Check!
     quotas = adminclass.readquotas(namespace).items
     lmts = adminclass.readlimits(namespace)
     limits = serviceview.limitsformat(lmts)
+    nodescheck = adminclass.listnodes()
     fql = VlabsForm()
     fql.setlimits(namespace)
-    # replication controller
-    # replication controller
     return render(
         request,
         'namespace.html',
-        context={'namespace': namespace, 'prj': prj, 'usrschart': usrschart, 'nssvcs': nssvcs, 'quotas': quotas, 'limits': limits, 'formlim':fql})
+        context={'namespace': namespace, 'prj': prj, 'nodescheck': nodescheck ,'usrschart': usrschart, 'nssvcs': nssvcs, 'quotas': quotas, 'limits': limits, 'formlim':fql, 'nsusers': nsusers})
 
 
 @userisauth
@@ -186,15 +213,24 @@ def funcns(request):
 def limquot(request):
     namespace = request.POST.get('namespace')
     adminclass = Adminclass(request.session.session_key)
-    serviceview = ServiceView()
-    forms = VlabsForm()
-    #Limits
-    actuallimits = adminclass.readlimits(namespace)
     tl = adminclass.readalllimits()
     allquotas = adminclass.readallquotas()
     return render(
         request,
         'tuneup.html', context={'namespace': namespace, 'totallimits': tl, 'quotas': allquotas})
+
+@userisauth
+@userisadmin
+def dellimq(request):
+    if request.GET:
+        var = request.GET.dict()
+        namespace = request.session['project']['prj']
+        adminclass = Adminclass(request.session.session_key)
+        if 'limit' in var:
+            adminclass.dellimit(var['limit'], namespace)
+        if 'quota' in var:
+            adminclass.delquota(var['quota'], namespace)
+    return redirect("/namespace/", namespace)
 
 @userisauth
 @userisadmin
@@ -207,15 +243,12 @@ def setql(request):
         newlim = {'metadata': {'name': var['limit'], 'labels': {'label':'vlabs'}}}
         newlim['spec'] = {}
         newlim['spec'] = oldlim.spec
-        print(newlim)
         adminclass.setlimits(var['newnamespace'], newlim)
     if 'quota' in var:
         oldquota = adminclass.readsinglequota(var['ns'], var['quota'])
-        print(oldquota)
         newquota = {'metadata': {'name': var['quota'], 'labels': {'label':'vlabs'}}}
         newquota['spec'] = {}
         newquota['spec'] = oldquota.spec
-        print(newquota)
         adminclass.setquotas(var['newnamespace'], newquota)
 
     return render(
@@ -228,18 +261,87 @@ def setql(request):
 @userisauth
 @userisadmin
 def funcuser(request):
-    user = request.GET.get('user')
-    print(user)
+    if request.GET:
+        user = request.GET.get('user')
+        request.session['project']['user'] = user
+        request.session.save()
+    else:
+        user = request.session['project']['user']
+    #std objects
+    getrun = SessionDict.buildSessionDict()[request.session.session_key]
+    qauth = Auth(request.session.session_key)
+    serviceview = ServiceView()
+    adminclass = Adminclass(request.session.session_key)
+    ##### end std object
+    userdict = adminclass.readuser(user)
+    #adminpage-xtendedtemplate
+    prj = qauth.chooseprj()
+    users = getrun.users('list')
+    usrschart = serviceview.userschart(users)
+    nodescheck = adminclass.listnodes()
+    ##### end end xtendedtemplate
+    dictprj = {}
+    dictnsusr = {}
+    newprj = prj
+    for i in prj:
+        dictnsusr[i] = {}
+        dictnsusr[i]['Users'] = serviceview.usersperns(getrun.rolebinding(i))
+    nsperuser = serviceview.nsperuser(user, dictnsusr)
+    for key in nsperuser[user]:
+        nsperuser[user][key] = getrun.getrunningadmin(key)
+        newprj.remove(key)
     return render(
         request,
         'user.html',
-        context={'user': user})
+        context={'user': user, 'prj': prj, 'usrschart': usrschart, 'nodescheck': nodescheck, 'userdict': userdict, 'nsperuser':nsperuser[user], 'newprj':newprj})
 
+@userisauth
+@userisadmin
+def patchrolebindings(request):
+    newrole = request.POST.dict()
+    adminclass = Adminclass(request.session.session_key)
+    adminclass.replacerolebinding(newrole['namespace'], newrole['user'], newrole['operation'])
+    return redirect("/user/")
+
+@userisauth
+@userisadmin
+def newns(request):
+    getrun = SessionDict.buildSessionDict()[request.session.session_key]
+    qauth = Auth(request.session.session_key)
+    serviceview = ServiceView()
+    adminclass = Adminclass(request.session.session_key)
+    ##### end std object
+    # adminpage-xtendedtemplate
+    prj = qauth.chooseprj()
+    users = getrun.users('list')
+    usrschart = serviceview.userschart(users)
+    nodescheck = adminclass.listnodes()
+    ##### end end xtendedtemplate
+    form = VlabsForm()
+    form.createns()
+    return render(
+        request,
+        'newns.html',
+        context={'prj': prj, 'usrschart': usrschart, 'nodescheck': nodescheck, 'form': form})
+
+@userisauth
+def nscreated(request):
+    adminclass = Adminclass(request.session.session_key)
+    if request.POST:
+        dict = request.POST.dict()
+        newns = dict['namespacename']
+        if adminclass.createns(newns, request.session['username']):
+            if 'first' in dict:
+                return redirect("/chns/")
+            else:
+                return redirect("/adminsvcs/")
+        else:
+            return redirect("/newns/")
 
 @userisauth
 def newtab(request):
     getrun = SessionDict.buildSessionDict()[request.session.session_key]
-    name = getrun.getrunning('bundle') # QUI ARGS
+    name = getrun.getrunning('bundle')
 
     dictbundle = {}
 
@@ -257,10 +359,7 @@ def newtab(request):
 
 @userisauth
 def get_name(request):
-    pprint(request)
     f = VlabsForm()
-    print('getname  - GET')
-    # this is the preferred way to get a users info, it is stored that way
     f.createapp()
 
     return render(request, 'market.html', {'form': f})
@@ -268,8 +367,6 @@ def get_name(request):
 @userisauth
 def get_app(request):
     f = VlabsForm()
-    print('getapp')
-    pprint(f)
     appradio = request.POST.get('app')
     ri = Config()
     appi = ri.getenv(appradio)
@@ -279,9 +376,6 @@ def get_app(request):
 @userisauth
 def postcreation(request):
     nome = request.POST.dict()
-    print("NOMEEEEEEEEEEEEEEEEEEEEEEE")
-    print(nome)
-    print("NOMEEEEEEEEEEEEEEEEEEEEEEE")
     del nome['csrfmiddlewaretoken']
     prj = request.session['project']['prj']
     user = request.session.get('sessionid')
@@ -289,25 +383,12 @@ def postcreation(request):
     e.buildvar(nome)
     return render(request, 'postcreate.html')
 
-'''
-def to_del(request):
-    getrun = AppManager(namespace)
-    name = getrun.getrunning()
-
-    pprint(request)
-    f = VlabsForm()
-    print('getname  - GET')
-    # this is the preferred way to get a users info, it is stored that way
-    f.deleteapp()
-    return render(request, 'del.html', {'form': f, 'running_services': name})
-'''
 
 @userisauth
 def delend(request):
     delradio = request.POST.get('run')
     getrun = SessionDict.buildSessionDict()[request.session.session_key]
     name = getrun.getrunning()
-    print("nome dell'applicazione da cancellare" + name[int(delradio)])
     getrun.delete(name[int(delradio)])
     return render(request, 'postdel.html')
 
@@ -326,9 +407,6 @@ def envsvc(request):
         serviceenv = getrun.getrunbundleenv(svc)
         f = VlabsForm()
         f.chooseapp(svcsel)
-        print("SVCSEL")
-        print(svcsel)
-        print("SVCSEL")
         return render(request, 'service.html', {'serviceenv': serviceenv, 'bundle': svcsel.split("=")[1], 'service': svcsel, 'prj': prjtot, 'admbtt': admbtt, 'form': f})
 
 @userisauth
@@ -344,7 +422,7 @@ def logout(request):
     rmauthz.logout()
     request.session.flush()
     SessionDict.ssd = {}
-    return render(request, 'logout.html')
+    return redirect("/")
 
 @userisauth
 def updatevar(request):
@@ -367,13 +445,12 @@ def updatedvar(request):
     data = uptd.varupdate(newvars)
     getrun = SessionDict.buildSessionDict()[request.session.session_key]
     getrun.patchdcvar(service, request.session['project']['prj'], data)
-    return render(request, 'updatedvar.html')
+    return redirect("/indexsvc/")
 
 @userisadmin
 @userisauth
 def updaterc(request):
     var = request.POST.dict()
-    print(var)
     adminclass = Adminclass(request.session.session_key)
     body = {'spec': {'replicas': int(var['quantity'])}}
     adminclass.updatedconfig(var['name'], var['namespace'], body)
