@@ -33,7 +33,7 @@ else:
     SECURE_PROXY_SSL_HEADER = None
 ALLOWED_HOSTS = [
     'localhost',
-    os.getenv('VLROUTE'),
+    os.environ.get('VLROUTE'),
     ]
 
 
@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'vlabs.urls'
@@ -135,4 +136,5 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
     os.path.join(BASE_DIR, 'static'),
 )
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')

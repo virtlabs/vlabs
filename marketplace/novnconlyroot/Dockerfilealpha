@@ -1,0 +1,27 @@
+FROM virtuallabs/novncubuntu:01032018
+
+#INSTALL ROOT && C++ && gedit && kate
+
+RUN apt-get -y install git dpkg-dev cmake g++ gcc binutils libx11-dev libxpm-dev \
+libxft-dev libxext-dev
+RUN apt-get -y install gfortran libssl-dev libpcre3-dev \
+xlibmesa-glu-dev libglew1.5-dev libftgl-dev \
+libmysqlclient-dev libfftw3-dev libcfitsio-dev \
+graphviz-dev libavahi-compat-libdnssd-dev \
+libldap2-dev python-dev libxml2-dev libkrb5-dev \
+libgsl0-dev libqt4-dev
+RUN apt-get -y install kate gedit
+
+RUN apt-get install -y xfce4-terminal
+RUN mkdir /headless/sw
+RUN wget https://root.cern.ch/download/root_v6.10.08.source.tar.gz  -P  /headless/sw
+RUN tar xvf /headless/sw/root_v6.10.08.source.tar.gz
+
+RUN mkdir /headless/root-build && mkdir /headless/root-install
+RUN cd /headless/root-build && cmake -Dall=ON -DCMAKE_INSTALL_PREFIX=/headless/root-install /headless/root-6.10.08
+RUN cd /headless/root-build && make -j4
+RUN cd /headless/root-build && make install
+
+RUN /bin/bash -c "echo 'source /headless/root-install/bin/thisroot.sh' >> .bashrc"
+
+RUN rm -rf /headless/sw /headless/root-build /headless/root-6.10.08

@@ -1,0 +1,40 @@
+{% extends "adminpage.html" %}
+{% block page-wrapper %}
+
+<div class="row">
+                <div class="col-lg-12">
+                    <h1 class="page-header">V-LABS</h1>
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+            <div class="row">
+
+                    <div class="well bs-component">
+    <form action="/nscreated/" name="form" method="POST" class="form-horizontal">
+    <fieldset>
+    <legend><h2>Namespace name</h2></legend>
+    <legend><h3> Name must consist of lower case alphanumeric characters or '-', and must start and end with an alphanumeric character (e.g. 'my-name',  or '123-abc')</h3></legend>
+        <div class="form-group">
+
+      <div class="col-lg-10">
+          {% csrf_token %}
+          {{ form.as_p }}
+
+        <input type="submit" value="Create App" class="btn btn-primary"/>
+      </div>
+    </div>
+    </fieldset>
+    </form>
+</div>
+                        <!-- /.panel-body -->
+                    </div>
+                    <!-- /.panel -->
+                </div>
+
+
+
+
+{% endblock %}
+
+    {{ block.super }}

@@ -1,0 +1,37 @@
+- name: 'python01'
+  services:
+    - nameservice: 'psiabox01'
+      ports:
+        - port: 'psiabox'
+          tcp: 4200
+          route: 'yes'
+      imagename: 'virtuallabs/psiabox'
+      env:
+        - name: 'SX_U'
+          value: $input
+          description: 'username'
+        - name: 'SX_P'
+          value: $input
+          description: 'password'
+      volumes:
+          persistentvolumeclaim: 'yes'
+          datadir: '/data'
+
+- name: 'python03'
+  services:
+    - nameservice: 'psiabox03'
+      ports:
+        - port: 'psiabox'
+          tcp: 4200
+          route: 'yes'
+      imagename: 'virtuallabs/psiabox'
+      env:
+        - name: 'SX_U'
+          value: $input
+          description: 'username'
+        - name: 'SX_P'
+          value: $input
+          description: 'password'
+      volumes:
+          persistentvolumeclaim: 'yes'
+          datadir: '/data'
