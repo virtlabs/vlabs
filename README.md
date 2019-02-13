@@ -1,6 +1,6 @@
-#vlabs
+# V-Labs
 
-This repo will contain 
- * Ansible playbook to deploy kubernetes
- * Dockerfile for apps in maretplace
- * Web interface source code
+This repo contains:
+ - V-Labs source code
+ - V-Labs Dockerfile
+ - Dockerfiles for several services
